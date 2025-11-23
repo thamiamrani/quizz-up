@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IQ Battle: Ultimate Edition</title>
+    <title>IQ Battle: Connection Fix</title>
     <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
     
@@ -15,7 +15,7 @@
             --danger: #ff7675;
             --text-main: #2d3436;
             --text-light: #636e72;
-            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-bg: rgba(255, 255, 255, 0.9);
             --glass-border: rgba(255, 255, 255, 0.5);
             --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
         }
@@ -48,27 +48,25 @@
             border: 1px solid var(--glass-border);
             width: 95%;
             max-width: 550px;
-            padding: 2.5rem;
+            padding: 2rem;
             border-radius: 24px;
             box-shadow: var(--shadow);
             position: relative;
             text-align: center;
-            /* Ensure long content doesn't overflow */
-            max-height: 90vh;
-            overflow-y: auto; 
+            max-height: 95vh;
+            overflow-y: auto;
         }
 
-        h1 { font-weight: 900; font-size: 2rem; margin: 0 0 10px 0; background: linear-gradient(45deg, var(--primary), #a29bfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h1 { font-weight: 900; font-size: 2rem; margin: 0 0 10px 0; color: var(--primary); }
         h2 { font-weight: 700; font-size: 1.5rem; margin-bottom: 1rem; color: var(--text-main); }
-        h3 { font-weight: 500; font-size: 1.1rem; color: var(--text-light); margin-bottom: 2rem; line-height: 1.4; }
         
         /* Header & Badges */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            background: rgba(255,255,255,0.5);
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.6);
             padding: 10px;
             border-radius: 16px;
         }
@@ -80,11 +78,11 @@
             border-radius: 12px;
             font-weight: 700;
             font-size: 0.8rem;
-            opacity: 0.6;
+            opacity: 0.5;
             transition: 0.3s;
         }
         .player-badge span { font-size: 1.4rem; margin-top: 2px; }
-        .player-badge.active { opacity: 1; transform: scale(1.05); background: white; color: var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .player-badge.active { opacity: 1; transform: scale(1.05); background: white; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
         /* Buttons & Inputs */
         .btn {
@@ -100,11 +98,11 @@
             max-width: 300px;
             font-family: 'Outfit', sans-serif;
             margin-top: 10px;
-            transition: transform 0.1s;
+            transition: 0.1s;
         }
         .btn:active { transform: scale(0.98); }
         .input-box {
-            padding: 15px; border-radius: 12px; border: 2px solid #dfe6e9; background: rgba(255,255,255,0.9);
+            padding: 15px; border-radius: 12px; border: 2px solid #dfe6e9; background: white;
             font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.1rem; text-align: center; color: var(--primary);
             width: 100%; max-width: 250px; outline: none; margin-bottom: 10px;
         }
@@ -146,7 +144,7 @@
         
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         
-        .lobby-box { background: white; padding: 25px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: left; }
+        .lobby-box { background: rgba(255,255,255,0.8); padding: 25px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: left; }
     </style>
 </head>
 <body>
@@ -162,32 +160,31 @@
     <!-- 1. Lobby -->
     <div id="screen-lobby" class="screen active">
         <h1>IQ BATTLE</h1>
-        <p style="margin-bottom: 20px;">Challenge your friends across 24 categories.</p>
+        <p style="margin-bottom: 20px;">Connection Status: <span id="connState" style="font-weight:bold; color:var(--text-light)">Idle</span></p>
         
         <div class="lobby-box">
             <h3 style="margin:0 0 10px 0; color:var(--primary); font-weight:800;">HOST GAME</h3>
-            <button class="btn" onclick="lobby.hostGame()">Create Room</button>
-            <div id="hostIdDisplay" style="display:none; margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
-                <p style="font-size:0.9rem; font-weight:700;">Room ID:</p>
+            <button class="btn" onclick="lobby.hostGame()" id="btnHost">Create Room</button>
+            <div id="hostIdDisplay" style="display:none; margin-top:15px; border-top:1px solid #ccc; padding-top:10px;">
+                <p style="font-size:0.9rem; font-weight:700;">Your Room ID:</p>
                 <input type="text" id="myPeerId" class="input-box" readonly onclick="this.select()">
+                <p style="font-size:0.8rem; color:#666;">Waiting for player...</p>
             </div>
         </div>
 
         <div class="lobby-box">
             <h3 style="margin:0 0 10px 0; color:var(--primary); font-weight:800;">JOIN GAME</h3>
-            <input type="text" id="joinInput" class="input-box" placeholder="Paste Room ID">
-            <button class="btn" style="background:var(--text-main);" onclick="lobby.joinGame()">Join Room</button>
+            <input type="text" id="joinInput" class="input-box" placeholder="Paste Room ID Here">
+            <button class="btn" style="background:var(--text-main);" onclick="lobby.joinGame()" id="btnJoin">Join Room</button>
         </div>
-        <div id="connectionStatus" style="font-weight:bold; font-size:0.9rem; margin-top:10px;"></div>
+        <div id="errorMsg" style="color:var(--danger); font-weight:bold; margin-top:10px;"></div>
     </div>
 
     <!-- 2. Theme Selection -->
     <div id="screen-theme" class="screen">
         <h2 id="themeTitle">Select a Theme</h2>
         <div class="grid-container" id="themeContainer"></div>
-        <div id="themeWaiting" style="display:none; margin-top:30px; font-style:italic; color:var(--text-light);">
-            Opponent is choosing...
-        </div>
+        <div id="themeWaiting" style="display:none; margin-top:30px; font-style:italic;">Opponent is choosing...</div>
     </div>
 
     <!-- 3. Difficulty -->
@@ -204,7 +201,7 @@
             </div>
             <button class="btn" onclick="game.confirmDifficulty()" style="margin-top:25px;">LOCK IT IN</button>
         </div>
-        <div id="diffWaiting" style="display:none; margin-top:30px; font-style:italic;">Opponent is sizing up the challenge...</div>
+        <div id="diffWaiting" style="display:none; margin-top:30px; font-style:italic;">Opponent is betting...</div>
     </div>
 
     <!-- 4. Question -->
@@ -236,96 +233,115 @@
         return txt.value;
     }
 
-    function logStatus(msg, isError = false) {
+    // --- LOGGING ---
+    function setStatus(msg, isError=false) {
         console.log(msg);
-        let el = document.getElementById('connectionStatus');
-        if(el) {
-            el.innerText = msg;
-            el.style.color = isError ? "var(--danger)" : "var(--primary)";
-        }
+        const el = document.getElementById('connState');
+        const errEl = document.getElementById('errorMsg');
+        el.innerText = msg;
+        el.style.color = isError ? "var(--danger)" : "var(--primary)";
+        if(isError) errEl.innerText = msg;
+        else errEl.innerText = "";
     }
 
-    // --- EXPANDED CATEGORIES LIST ---
+    // --- CATEGORIES ---
     const CATEGORIES = [
-        {id: 9, name: "General Knowledge"},
-        {id: 10, name: "Books"},
-        {id: 11, name: "Movies"},
-        {id: 12, name: "Music"},
-        {id: 14, name: "Television"},
-        {id: 15, name: "Video Games"},
-        {id: 16, name: "Board Games"},
-        {id: 17, name: "Science & Nature"},
-        {id: 18, name: "Computers"},
-        {id: 19, name: "Mathematics"},
-        {id: 20, name: "Mythology"},
-        {id: 21, name: "Sports"},
-        {id: 22, name: "Geography"},
-        {id: 23, name: "History"},
-        {id: 24, name: "Politics"},
-        {id: 25, name: "Art"},
-        {id: 26, name: "Celebrities"},
-        {id: 27, name: "Animals"},
-        {id: 28, name: "Vehicles"},
-        {id: 29, name: "Comics"},
-        {id: 30, name: "Gadgets"},
-        {id: 31, name: "Anime & Manga"},
-        {id: 32, name: "Cartoons"}
+        {id: 9, name: "General Knowledge"}, {id: 11, name: "Movies"}, {id: 12, name: "Music"},
+        {id: 14, name: "Television"}, {id: 15, name: "Video Games"}, {id: 17, name: "Science & Nature"},
+        {id: 18, name: "Computers"}, {id: 21, name: "Sports"}, {id: 22, name: "Geography"},
+        {id: 23, name: "History"}, {id: 27, name: "Animals"}, {id: 31, name: "Anime & Manga"}
     ];
 
-    // --- NETWORK LOGIC ---
-    let peer = null, conn = null, isHost = false;
+    // --- PEER CONFIG ---
+    // Using Google's public STUN servers is critical for connecting over Internet
     const peerConfig = {
         debug: 1,
-        config: { 'iceServers': [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' }
-        ]}
+        config: {
+            'iceServers': [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        }
     };
 
+    let peer = null;
+    let conn = null;
+    let isHost = false;
+
+    // --- LOBBY LOGIC ---
     const lobby = {
         hostGame: function() {
             isHost = true;
-            logStatus("Creating room...");
-            try { peer = new Peer(null, peerConfig); } catch(e) { logStatus("Error: " + e, true); return; }
+            document.getElementById('btnHost').disabled = true;
+            setStatus("Initializing Host...");
             
+            peer = new Peer(null, peerConfig);
+
             peer.on('open', (id) => {
                 document.getElementById('hostIdDisplay').style.display = 'block';
                 document.getElementById('myPeerId').value = id;
-                logStatus("Room Ready! Share the ID.");
+                setStatus("Ready. Share ID.");
             });
+
             peer.on('connection', (c) => {
                 conn = c;
-                logStatus("Player connecting...");
+                setStatus("Player connecting...");
                 lobby.setupConnection();
             });
-            peer.on('error', (err) => logStatus("Net Error: " + err.type, true));
-            peer.on('disconnected', () => peer.reconnect());
+
+            peer.on('error', (err) => setStatus("Host Error: " + err.type, true));
         },
 
         joinGame: function() {
             isHost = false;
             let hostId = document.getElementById('joinInput').value.trim();
-            if(!hostId) return alert("Enter Room ID");
-            logStatus("Connecting...");
+            if(!hostId) return setStatus("Please enter Room ID", true);
             
-            try { peer = new Peer(null, peerConfig); } catch(e) { logStatus("Error: " + e, true); return; }
-            
-            peer.on('open', () => {
-                conn = peer.connect(hostId, { reliable: true });
-                if(!conn) return logStatus("Connection failed", true);
+            document.getElementById('btnJoin').disabled = true;
+            setStatus("Connecting to Server...");
+
+            peer = new Peer(null, peerConfig);
+
+            peer.on('open', (myId) => {
+                setStatus("Searching for Room...");
+                // Force JSON serialization for browser compatibility
+                conn = peer.connect(hostId, { serialization: 'json' });
+
+                // Set a timeout if connection hangs
+                setTimeout(() => {
+                    if(!conn || !conn.open) {
+                        setStatus("Connection Timed Out. Firewall?", true);
+                        document.getElementById('btnJoin').disabled = false;
+                    }
+                }, 8000);
+
                 lobby.setupConnection();
             });
-            peer.on('error', (err) => logStatus("Error: " + err.type, true));
+
+            peer.on('error', (err) => {
+                setStatus("Join Error: " + err.type, true);
+                document.getElementById('btnJoin').disabled = false;
+            });
         },
 
         setupConnection: function() {
+            if(!conn) return;
+
             conn.on('open', () => {
-                logStatus("Connected! Starting...");
-                setTimeout(() => { if(isHost) game.initGame(); }, 500);
+                setStatus("Connected! Launching...");
+                // Small delay to ensure handshake is complete
+                setTimeout(() => {
+                    if(isHost) game.initGame();
+                }, 500);
             });
-            conn.on('data', (d) => handleNetworkMessage(d));
-            conn.on('close', () => { alert("Disconnected"); location.reload(); });
+
+            conn.on('data', (data) => handleNetworkMessage(data));
+            conn.on('close', () => {
+                alert("Opponent disconnected.");
+                location.reload();
+            });
         },
+
         send: function(type, payload) {
             if(conn && conn.open) conn.send({ type, payload });
         }
@@ -359,7 +375,6 @@
         },
         startRound: function() {
             if(!isHost) return;
-            // SHUFFLE & PICK 4
             const shuffled = [...CATEGORIES].sort(() => 0.5 - Math.random());
             state.currentThemes = shuffled.slice(0, 4);
             lobby.send('NEW_ROUND', { themes: state.currentThemes, turnPlayer: state.turnPlayer });
@@ -375,7 +390,7 @@
             const bet = parseInt(document.getElementById('diffSlider').value);
             state.difficultyBet = bet;
             document.getElementById('sliderWrapper').style.display = 'none';
-            document.getElementById('questionText').innerText = "Generating Question...";
+            document.getElementById('questionText').innerText = "Fetching Question...";
             this.fetchQuestion(state.selectedTheme.id, bet);
         },
         fetchQuestion: async function(catId, difficultyBet) {
@@ -445,7 +460,6 @@
             document.getElementById('themeWaiting').style.display = game.isMyTurn() ? 'none' : 'block';
             document.getElementById('themeContainer').style.display = game.isMyTurn() ? 'grid' : 'none';
             document.getElementById('themeTitle').innerText = game.isMyTurn() ? "Select a Theme" : "Opponent's Turn";
-            
             if(game.isMyTurn()) {
                 themes.forEach(theme => {
                     const btn = document.createElement('button');

@@ -3,30 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IQ Battle: Connection Fix</title>
+    <title>IQ Battle: Max Compatibility</title>
     <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --primary: #6c5ce7;
-            --primary-dark: #5849c2;
             --accent: #00b894;
             --danger: #ff7675;
             --text-main: #2d3436;
-            --text-light: #636e72;
-            --glass-bg: rgba(255, 255, 255, 0.9);
-            --glass-border: rgba(255, 255, 255, 0.5);
-            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass-bg: rgba(255, 255, 255, 0.95);
         }
-
-        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Outfit', sans-serif;
-            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            background: var(--bg-gradient);
             color: var(--text-main);
             margin: 0;
             display: flex;
@@ -35,489 +28,392 @@
             min-height: 100vh;
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
         #app {
             background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
             width: 95%;
-            max-width: 550px;
+            max-width: 500px;
             padding: 2rem;
-            border-radius: 24px;
-            box-shadow: var(--shadow);
-            position: relative;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
             text-align: center;
             max-height: 95vh;
             overflow-y: auto;
         }
 
-        h1 { font-weight: 900; font-size: 2rem; margin: 0 0 10px 0; color: var(--primary); }
-        h2 { font-weight: 700; font-size: 1.5rem; margin-bottom: 1rem; color: var(--text-main); }
+        h1 { font-weight: 900; color: var(--primary); margin-top: 0; }
         
-        /* Header & Badges */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            background: rgba(255,255,255,0.6);
-            padding: 10px;
-            border-radius: 16px;
-        }
-        .player-badge {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 8px 15px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.8rem;
-            opacity: 0.5;
-            transition: 0.3s;
-        }
-        .player-badge span { font-size: 1.4rem; margin-top: 2px; }
-        .player-badge.active { opacity: 1; transform: scale(1.05); background: white; color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-
-        /* Buttons & Inputs */
         .btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            border-radius: 16px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            width: 100%;
-            max-width: 300px;
-            font-family: 'Outfit', sans-serif;
-            margin-top: 10px;
-            transition: 0.1s;
+            background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px;
+            font-size: 1rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 10px;
+            transition: 0.2s;
         }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
         .btn:active { transform: scale(0.98); }
+        
         .input-box {
-            padding: 15px; border-radius: 12px; border: 2px solid #dfe6e9; background: white;
-            font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.1rem; text-align: center; color: var(--primary);
-            width: 100%; max-width: 250px; outline: none; margin-bottom: 10px;
+            padding: 12px; border-radius: 8px; border: 2px solid #ddd; width: 100%;
+            font-size: 1.1rem; text-align: center; margin-bottom: 10px; font-family: 'Outfit', sans-serif;
         }
 
-        /* Grid */
-        .grid-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 20px;
-        }
-        @media (max-width: 500px) { .grid-container { grid-template-columns: 1fr; } }
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* Grid & Cards */
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         .card-btn {
-            background: white; border: none; color: var(--text-main); padding: 15px; border-radius: 16px;
-            cursor: pointer; font-weight: 700; font-size: 0.95rem; font-family: 'Outfit', sans-serif;
-            transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            display: flex; align-items: center; justify-content: center;
-            min-height: 70px; word-wrap: break-word; line-height: 1.2;
+            background: white; border: 2px solid #eee; padding: 15px; border-radius: 12px;
+            cursor: pointer; font-weight: 600; min-height: 60px; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
         }
-        .card-btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
-
+        .card-btn:hover { border-color: var(--primary); background: #f8f9fa; }
+        
+        /* Status Bar */
+        #statusBox {
+            margin-top: 15px; padding: 10px; border-radius: 8px; background: #f1f2f6;
+            font-size: 0.85rem; font-weight: 600; color: #666;
+        }
+        
+        /* Game UI */
+        .header { display: flex; justify-content: space-between; margin-bottom: 20px; background: #eee; padding: 10px; border-radius: 10px; }
+        .correct { background: var(--accent) !important; color: white; border-color: var(--accent); }
+        .wrong { background: var(--danger) !important; color: white; border-color: var(--danger); }
+        
         /* Slider */
-        .slider-container { margin: 30px 0; }
-        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 30px; width: 30px; border-radius: 50%; background: var(--primary);
-            cursor: pointer; margin-top: -12px; box-shadow: 0 0 0 5px white, 0 5px 15px rgba(0,0,0,0.2);
-        }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; background: #dfe6e9; border-radius: 5px; }
-        .difficulty-display { font-size: 4rem; font-weight: 900; color: var(--primary); line-height: 1; margin-bottom: 10px; }
-
-        /* States */
-        .correct { background-color: var(--accent) !important; color: white !important; }
-        .wrong { background-color: var(--danger) !important; color: white !important; opacity: 0.8; }
-        .disabled { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
-        .screen { display: none; animation: slideUp 0.4s ease; }
-        .screen.active { display: block; }
-        
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .lobby-box { background: rgba(255,255,255,0.8); padding: 25px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: left; }
+        input[type=range] { width: 100%; accent-color: var(--primary); margin: 20px 0; }
+        .diff-val { font-size: 3rem; font-weight: 900; color: var(--primary); }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <!-- Header -->
-    <div class="header" id="gameHeader" style="display:none;">
-        <div id="p1Badge" class="player-badge"><span>You</span><span id="p1Score">0</span></div>
-        <div style="font-weight:900; color:#b2bec3;">VS</div>
-        <div id="p2Badge" class="player-badge"><span>Opponent</span><span id="p2Score">0</span></div>
-    </div>
-
-    <!-- 1. Lobby -->
+    <!-- 1. LOBBY -->
     <div id="screen-lobby" class="screen active">
         <h1>IQ BATTLE</h1>
-        <p style="margin-bottom: 20px;">Connection Status: <span id="connState" style="font-weight:bold; color:var(--text-light)">Idle</span></p>
+        <p style="font-size:0.9rem; color:#666;">Max Compatibility Mode</p>
         
-        <div class="lobby-box">
-            <h3 style="margin:0 0 10px 0; color:var(--primary); font-weight:800;">HOST GAME</h3>
-            <button class="btn" onclick="lobby.hostGame()" id="btnHost">Create Room</button>
-            <div id="hostIdDisplay" style="display:none; margin-top:15px; border-top:1px solid #ccc; padding-top:10px;">
-                <p style="font-size:0.9rem; font-weight:700;">Your Room ID:</p>
-                <input type="text" id="myPeerId" class="input-box" readonly onclick="this.select()">
-                <p style="font-size:0.8rem; color:#666;">Waiting for player...</p>
+        <div style="background:white; padding:20px; border-radius:15px; margin-bottom:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+            <h3>HOST</h3>
+            <button class="btn" id="btnHost" onclick="lobby.hostGame()">Create Room</button>
+            <div id="hostArea" style="display:none; margin-top:15px;">
+                <p>Your Room ID:</p>
+                <input type="text" id="myId" class="input-box" readonly onclick="this.select()">
+                <div class="loader"></div>
             </div>
         </div>
 
-        <div class="lobby-box">
-            <h3 style="margin:0 0 10px 0; color:var(--primary); font-weight:800;">JOIN GAME</h3>
-            <input type="text" id="joinInput" class="input-box" placeholder="Paste Room ID Here">
-            <button class="btn" style="background:var(--text-main);" onclick="lobby.joinGame()" id="btnJoin">Join Room</button>
+        <div style="background:white; padding:20px; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+            <h3>JOIN</h3>
+            <input type="text" id="joinId" class="input-box" placeholder="Paste ID Here">
+            <button class="btn" id="btnJoin" style="background:#2d3436;" onclick="lobby.joinGame()">Join Room</button>
         </div>
-        <div id="errorMsg" style="color:var(--danger); font-weight:bold; margin-top:10px;"></div>
+
+        <div id="statusBox">Status: Ready</div>
     </div>
 
-    <!-- 2. Theme Selection -->
-    <div id="screen-theme" class="screen">
-        <h2 id="themeTitle">Select a Theme</h2>
-        <div class="grid-container" id="themeContainer"></div>
-        <div id="themeWaiting" style="display:none; margin-top:30px; font-style:italic;">Opponent is choosing...</div>
-    </div>
-
-    <!-- 3. Difficulty -->
-    <div id="screen-difficulty" class="screen">
-        <div style="background:var(--primary); color:white; padding:5px 15px; border-radius:20px; display:inline-block; font-size:0.8rem; font-weight:700;">TOPIC</div>
-        <h2 id="selectedThemeDisplay" style="margin-top:5px;">Theme</h2>
-        <p id="diffPrompt">How knowledgeable are you? (1-10)</p>
+    <!-- 2. GAME UI -->
+    <div id="screen-game" class="screen">
+        <div class="header">
+            <div>You: <span id="scoreMe">0</span></div>
+            <div>Opponent: <span id="scoreOp">0</span></div>
+        </div>
         
-        <div id="sliderWrapper" class="slider-container">
-            <div class="difficulty-display"><span id="diffValue">5</span></div>
-            <input type="range" min="1" max="10" value="5" id="diffSlider" oninput="ui.updateDiffDisplay(this.value)">
-            <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.8rem; font-weight:700; color:var(--text-light);">
-                <span>NOVICE</span><span>EXPERT</span>
+        <!-- Phases -->
+        <div id="phase-theme">
+            <h2>Select Theme</h2>
+            <div id="themeGrid" class="grid-container"></div>
+            <p id="themeMsg" style="margin-top:20px; color:#888;"></p>
+        </div>
+
+        <div id="phase-diff" style="display:none;">
+            <div style="background:var(--primary); color:white; padding:4px 12px; border-radius:20px; display:inline-block; font-size:0.8rem;">THEME</div>
+            <h2 id="themeLabel"></h2>
+            <p id="diffMsg">Rate your knowledge (1-10)</p>
+            <div id="diffControls">
+                <div class="diff-val"><span id="sliderVal">5</span></div>
+                <input type="range" min="1" max="10" value="5" oninput="document.getElementById('sliderVal').innerText=this.value" id="diffSlider">
+                <button class="btn" onclick="game.lockDifficulty()">CONFIRM</button>
             </div>
-            <button class="btn" onclick="game.confirmDifficulty()" style="margin-top:25px;">LOCK IT IN</button>
         </div>
-        <div id="diffWaiting" style="display:none; margin-top:30px; font-style:italic;">Opponent is betting...</div>
+
+        <div id="phase-qa" style="display:none;">
+            <div style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:0.8rem;">For <span id="pts">0</span> Points</div>
+            <h3 id="qText">Loading...</h3>
+            <div id="ansGrid" class="grid-container"></div>
+            <div id="feedback" style="margin-top:15px; font-weight:800; min-height:20px;"></div>
+            <button id="nextBtn" class="btn" style="display:none;" onclick="game.nextRound()">NEXT ROUND</button>
+            <p id="qaMsg" style="color:#888; display:none;"></p>
+        </div>
     </div>
 
-    <!-- 4. Question -->
-    <div id="screen-question" class="screen">
-        <div style="margin-bottom:15px; color:var(--primary); font-weight:900; text-transform:uppercase; letter-spacing:1px;">
-            For <span id="pointsAtStake" style="font-size:1.2rem;">0</span> Points
-        </div>
-        <h3 id="questionText" style="color:var(--text-main); font-weight:700;">Loading...</h3>
-        <div class="grid-container" id="answersContainer"></div>
-        <div id="feedback" style="margin-top:20px; height:30px; font-weight:900; font-size:1.1rem;"></div>
-        <div id="questionWaiting" style="display:none; margin-top:20px; font-style:italic;">Opponent is thinking...</div>
-        <button id="nextBtn" class="btn" style="display:none; margin:20px auto;" onclick="game.nextRound()">NEXT ROUND</button>
-    </div>
-
-    <!-- 5. Win -->
     <div id="screen-win" class="screen">
-        <div style="font-size:4rem; margin-bottom:10px;">🏆</div>
-        <h1 id="winnerText">Game Over</h1>
-        <h2 id="finalScoreDisplay" style="color:var(--primary); font-size:2.5rem; margin-top:10px;"></h2>
-        <button class="btn" onclick="location.reload()">MAIN MENU</button>
+        <h1 id="winTitle">GAME OVER</h1>
+        <h2 id="finalScore"></h2>
+        <button class="btn" onclick="location.reload()">PLAY AGAIN</button>
     </div>
 </div>
 
 <script>
-    // --- UTILITIES ---
-    function decodeHTML(html) {
-        var txt = document.createElement("textarea");
-        txt.innerHTML = html;
-        return txt.value;
-    }
-
-    // --- LOGGING ---
-    function setStatus(msg, isError=false) {
-        console.log(msg);
-        const el = document.getElementById('connState');
-        const errEl = document.getElementById('errorMsg');
-        el.innerText = msg;
-        el.style.color = isError ? "var(--danger)" : "var(--primary)";
-        if(isError) errEl.innerText = msg;
-        else errEl.innerText = "";
-    }
-
-    // --- CATEGORIES ---
-    const CATEGORIES = [
-        {id: 9, name: "General Knowledge"}, {id: 11, name: "Movies"}, {id: 12, name: "Music"},
-        {id: 14, name: "Television"}, {id: 15, name: "Video Games"}, {id: 17, name: "Science & Nature"},
-        {id: 18, name: "Computers"}, {id: 21, name: "Sports"}, {id: 22, name: "Geography"},
-        {id: 23, name: "History"}, {id: 27, name: "Animals"}, {id: 31, name: "Anime & Manga"}
-    ];
-
-    // --- PEER CONFIG ---
-    // Using Google's public STUN servers is critical for connecting over Internet
-    const peerConfig = {
+    // --- CONFIGURATION ---
+    // Massive list of STUN servers to bypass firewalls
+    const PEER_CONFIG = {
         debug: 1,
         config: {
-            'iceServers': [
+            iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' },
+                { urls: 'stun:stun.nextcloud.com:443' } // Port 443 helps bypass corporate firewalls
             ]
         }
     };
 
-    let peer = null;
-    let conn = null;
-    let isHost = false;
+    const CATEGORIES = [
+        {id:9,n:"General"}, {id:11,n:"Movies"}, {id:12,n:"Music"}, {id:15,n:"Games"},
+        {id:17,n:"Science"}, {id:21,n:"Sports"}, {id:22,n:"Geography"}, {id:23,n:"History"},
+        {id:27,n:"Animals"}, {id:31,n:"Anime"}
+    ];
 
-    // --- LOBBY LOGIC ---
+    // --- LOGGING ---
+    function log(msg, err=false) {
+        console.log(msg);
+        const b = document.getElementById('statusBox');
+        b.innerText = msg;
+        b.style.color = err ? "red" : "#666";
+        b.style.background = err ? "#ffeaea" : "#f1f2f6";
+    }
+
+    // --- NETWORK ---
+    let peer, conn, isHost = false;
+
     const lobby = {
-        hostGame: function() {
+        hostGame: () => {
             isHost = true;
             document.getElementById('btnHost').disabled = true;
-            setStatus("Initializing Host...");
+            log("Initializing Network...");
             
-            peer = new Peer(null, peerConfig);
-
+            peer = new Peer(null, PEER_CONFIG);
+            
             peer.on('open', (id) => {
-                document.getElementById('hostIdDisplay').style.display = 'block';
-                document.getElementById('myPeerId').value = id;
-                setStatus("Ready. Share ID.");
+                document.getElementById('hostArea').style.display = 'block';
+                document.getElementById('myId').value = id;
+                log("Room Open. Waiting for player...");
             });
 
             peer.on('connection', (c) => {
                 conn = c;
-                setStatus("Player connecting...");
-                lobby.setupConnection();
+                log("Player Connecting...");
+                lobby.bindEvents();
             });
-
-            peer.on('error', (err) => setStatus("Host Error: " + err.type, true));
+            
+            peer.on('error', e => log("Host Error: " + e.type, true));
         },
 
-        joinGame: function() {
+        joinGame: () => {
             isHost = false;
-            let hostId = document.getElementById('joinInput').value.trim();
-            if(!hostId) return setStatus("Please enter Room ID", true);
+            const id = document.getElementById('joinId').value.trim();
+            if(!id) return log("Enter ID first", true);
             
             document.getElementById('btnJoin').disabled = true;
-            setStatus("Connecting to Server...");
-
-            peer = new Peer(null, peerConfig);
-
-            peer.on('open', (myId) => {
-                setStatus("Searching for Room...");
-                // Force JSON serialization for browser compatibility
-                conn = peer.connect(hostId, { serialization: 'json' });
-
-                // Set a timeout if connection hangs
+            log("Connecting to Room...");
+            
+            peer = new Peer(null, PEER_CONFIG);
+            
+            peer.on('open', () => {
+                log("Locating Host...");
+                conn = peer.connect(id, { reliable: true });
+                
+                // Fallback timeout
                 setTimeout(() => {
-                    if(!conn || !conn.open) {
-                        setStatus("Connection Timed Out. Firewall?", true);
-                        document.getElementById('btnJoin').disabled = false;
-                    }
+                    if(!conn.open) log("Connection Stuck. Try Mobile Hotspot.", true);
                 }, 8000);
 
-                lobby.setupConnection();
+                lobby.bindEvents();
             });
-
-            peer.on('error', (err) => {
-                setStatus("Join Error: " + err.type, true);
-                document.getElementById('btnJoin').disabled = false;
-            });
+            
+            peer.on('error', e => log("Join Error: " + e.type + ". Check ID.", true));
         },
 
-        setupConnection: function() {
-            if(!conn) return;
-
+        bindEvents: () => {
             conn.on('open', () => {
-                setStatus("Connected! Launching...");
-                // Small delay to ensure handshake is complete
-                setTimeout(() => {
-                    if(isHost) game.initGame();
-                }, 500);
+                log("Connected! Starting...");
+                setTimeout(() => { if(isHost) game.init(); }, 1000);
             });
-
-            conn.on('data', (data) => handleNetworkMessage(data));
-            conn.on('close', () => {
-                alert("Opponent disconnected.");
-                location.reload();
-            });
+            conn.on('data', data => handleData(data));
+            conn.on('close', () => alert("Disconnected"));
+            conn.on('error', e => log("Net Error: " + e, true));
         },
 
-        send: function(type, payload) {
-            if(conn && conn.open) conn.send({ type, payload });
+        send: (type, payload) => {
+            if(conn && conn.open) conn.send({t:type, p:payload});
         }
     };
 
-    // --- GAME STATE ---
+    // --- GAME LOGIC ---
     const state = {
-        turnPlayer: 'host', scores: { host: 0, client: 0 },
-        currentThemes: [], selectedTheme: null, difficultyBet: 5,
-        currentQuestion: null, winningScore: 25
+        turn: 'host', scores: {h:0, c:0}, themes: [], theme: null, bet: 5, q: null
     };
 
-    function handleNetworkMessage(msg) {
-        switch(msg.type) {
-            case 'GAME_START': state.turnPlayer = msg.payload.turnPlayer; ui.startGame(); break;
-            case 'NEW_ROUND': state.currentThemes = msg.payload.themes; state.turnPlayer = msg.payload.turnPlayer; ui.showThemeScreen(state.currentThemes); break;
-            case 'THEME_SELECTED': state.selectedTheme = msg.payload.theme; ui.showDifficultyScreen(state.selectedTheme); break;
-            case 'QUESTION_READY': state.currentQuestion = msg.payload.question; state.difficultyBet = msg.payload.bet; ui.showQuestionScreen(state.currentQuestion, state.difficultyBet); break;
-            case 'SCORE_UPDATE': state.scores = msg.payload.scores; state.turnPlayer = msg.payload.nextTurn; ui.updateScores(); ui.showFeedback(msg.payload.result, msg.payload.correctAnswer); break;
-            case 'GAME_OVER': state.scores = msg.payload.scores; ui.showWinScreen(msg.payload.winner); break;
+    function handleData(msg) {
+        switch(msg.t) {
+            case 'START': state.turn = msg.p.turn; ui.showGame(); break;
+            case 'ROUND': state.themes = msg.p.themes; state.turn = msg.p.turn; ui.round(); break;
+            case 'THEME': state.theme = msg.p.theme; ui.diff(); break;
+            case 'Q': state.q = msg.p.q; state.bet = msg.p.bet; ui.qa(); break;
+            case 'SCORE': 
+                state.scores = msg.p.scores; 
+                state.turn = msg.p.turn; 
+                ui.updateScores(); 
+                ui.feedback(msg.p.res, msg.p.ans); 
+                break;
+            case 'WIN': state.scores = msg.p.scores; ui.win(msg.p.winner); break;
         }
     }
 
-    // --- GAME LOGIC ---
     const game = {
-        initGame: function() {
-            state.turnPlayer = Math.random() > 0.5 ? 'host' : 'client';
-            lobby.send('GAME_START', { turnPlayer: state.turnPlayer });
-            ui.startGame();
-            this.startRound();
+        init: () => {
+            state.turn = Math.random()>0.5 ? 'host' : 'client';
+            lobby.send('START', {turn: state.turn});
+            ui.showGame();
+            game.newRound();
         },
-        startRound: function() {
+        newRound: () => {
             if(!isHost) return;
-            const shuffled = [...CATEGORIES].sort(() => 0.5 - Math.random());
-            state.currentThemes = shuffled.slice(0, 4);
-            lobby.send('NEW_ROUND', { themes: state.currentThemes, turnPlayer: state.turnPlayer });
-            ui.showThemeScreen(state.currentThemes);
+            const t = [...CATEGORIES].sort(()=>0.5-Math.random()).slice(0,4);
+            state.themes = t;
+            lobby.send('ROUND', {themes:t, turn:state.turn});
+            ui.round();
         },
-        selectTheme: function(theme) {
+        pickTheme: (t) => {
             if(!game.isMyTurn()) return;
-            state.selectedTheme = theme;
-            lobby.send('THEME_SELECTED', { theme: theme });
-            ui.showDifficultyScreen(theme);
+            state.theme = t;
+            lobby.send('THEME', {theme:t});
+            ui.diff();
         },
-        confirmDifficulty: function() {
-            const bet = parseInt(document.getElementById('diffSlider').value);
-            state.difficultyBet = bet;
-            document.getElementById('sliderWrapper').style.display = 'none';
-            document.getElementById('questionText').innerText = "Fetching Question...";
-            this.fetchQuestion(state.selectedTheme.id, bet);
+        lockDifficulty: () => {
+            const val = parseInt(document.getElementById('diffSlider').value);
+            state.bet = val;
+            document.getElementById('diffControls').style.display = 'none';
+            document.getElementById('diffMsg').innerText = "Fetching Question...";
+            game.fetchQ(state.theme.id, val);
         },
-        fetchQuestion: async function(catId, difficultyBet) {
-            let apiDiff = 'medium';
-            if (difficultyBet <= 3) apiDiff = 'easy';
-            if (difficultyBet >= 8) apiDiff = 'hard';
+        fetchQ: async (cat, diff) => {
+            let d = diff<=3?'easy':(diff>=8?'hard':'medium');
             try {
-                const res = await fetch(`https://opentdb.com/api.php?amount=1&category=${catId}&difficulty=${apiDiff}&type=multiple`);
-                const data = await res.json();
-                if(data.results?.length) {
-                    state.currentQuestion = data.results[0];
-                    lobby.send('QUESTION_READY', { question: state.currentQuestion, bet: state.difficultyBet });
-                    ui.showQuestionScreen(state.currentQuestion, state.difficultyBet);
-                } else {
-                    this.fetchQuestion(catId, difficultyBet); // Retry
-                }
-            } catch(e) { alert("Network Error"); }
+                const r = await fetch(`https://opentdb.com/api.php?amount=1&category=${cat}&difficulty=${d}&type=multiple`);
+                const j = await r.json();
+                if(j.results && j.results.length) {
+                    state.q = j.results[0];
+                    lobby.send('Q', {q:state.q, bet:state.bet});
+                    ui.qa();
+                } else game.fetchQ(cat, diff);
+            } catch(e) { alert("API Error"); }
         },
-        submitAnswer: function(ans) {
-            const isCorrect = ans === decodeHTML(state.currentQuestion.correct_answer);
-            const points = isCorrect ? state.difficultyBet : 0;
-            if(state.turnPlayer === 'host') state.scores.host += points; else state.scores.client += points;
-
+        answer: (ans) => {
+            const correct = state.q.correct_answer === ans;
+            const pts = correct ? state.bet : 0;
+            if(state.turn === 'host') state.scores.h += pts; else state.scores.c += pts;
+            
             let winner = null;
-            if(state.scores.host >= state.winningScore) winner = 'host';
-            else if(state.scores.client >= state.winningScore) winner = 'client';
+            if(state.scores.h >= 25) winner = 'host';
+            if(state.scores.c >= 25) winner = 'client';
 
             if(winner) {
-                lobby.send('GAME_OVER', { scores: state.scores, winner: winner });
-                ui.showWinScreen(winner);
+                lobby.send('WIN', {scores:state.scores, winner});
+                ui.win(winner);
             } else {
-                const nextTurn = state.turnPlayer === 'host' ? 'client' : 'host';
-                const payload = { scores: state.scores, result: isCorrect?'correct':'wrong', correctAnswer: decodeHTML(state.currentQuestion.correct_answer), nextTurn: nextTurn };
-                lobby.send('SCORE_UPDATE', payload);
-                state.scores = payload.scores; state.turnPlayer = nextTurn;
-                ui.updateScores(); ui.showFeedback(payload.result, payload.correctAnswer);
+                const next = state.turn==='host'?'client':'host';
+                const payload = {scores:state.scores, res:correct, ans:state.q.correct_answer, turn:next};
+                lobby.send('SCORE', payload);
+                state.scores = payload.scores; state.turn = next;
+                ui.updateScores(); ui.feedback(correct, state.q.correct_answer);
             }
         },
-        nextRound: function() {
-            document.getElementById('nextBtn').style.display = 'none';
-            document.getElementById('feedback').innerText = '';
-            if(isHost) this.startRound();
-            else document.getElementById('questionWaiting').innerText = "Waiting for Host...";
-        },
-        isMyTurn: function() {
-            return (isHost && state.turnPlayer === 'host') || (!isHost && state.turnPlayer === 'client');
-        }
+        isMyTurn: () => (isHost && state.turn==='host') || (!isHost && state.turn==='client')
     };
 
     // --- UI ---
+    function decode(html) { const t=document.createElement("textarea"); t.innerHTML=html; return t.value; }
+
     const ui = {
-        startGame: function() { document.getElementById('gameHeader').style.display = 'flex'; this.updateScores(); },
-        updateScores: function() {
-            document.getElementById('p1Score').innerText = isHost ? state.scores.host : state.scores.client;
-            document.getElementById('p2Score').innerText = isHost ? state.scores.client : state.scores.host;
-            const p1 = document.getElementById('p1Badge'), p2 = document.getElementById('p2Badge');
-            if(game.isMyTurn()) { p1.classList.add('active'); p2.classList.remove('active'); } 
-            else { p1.classList.remove('active'); p2.classList.add('active'); }
+        showGame: () => {
+            document.getElementById('screen-lobby').classList.remove('active');
+            document.getElementById('screen-game').classList.add('active');
+            ui.updateScores();
         },
-        showScreen: function(id) {
-            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+        updateScores: () => {
+            document.getElementById('scoreMe').innerText = isHost ? state.scores.h : state.scores.c;
+            document.getElementById('scoreOp').innerText = isHost ? state.scores.c : state.scores.h;
         },
-        showThemeScreen: function(themes) {
-            const container = document.getElementById('themeContainer');
-            container.innerHTML = '';
-            document.getElementById('themeWaiting').style.display = game.isMyTurn() ? 'none' : 'block';
-            document.getElementById('themeContainer').style.display = game.isMyTurn() ? 'grid' : 'none';
-            document.getElementById('themeTitle').innerText = game.isMyTurn() ? "Select a Theme" : "Opponent's Turn";
-            if(game.isMyTurn()) {
-                themes.forEach(theme => {
-                    const btn = document.createElement('button');
-                    btn.className = 'card-btn';
-                    btn.innerText = theme.name;
-                    btn.onclick = () => game.selectTheme(theme);
-                    container.appendChild(btn);
+        round: () => {
+            hideAll(); document.getElementById('phase-theme').style.display='block';
+            const g = document.getElementById('themeGrid'); g.innerHTML = '';
+            const myTurn = game.isMyTurn();
+            document.getElementById('themeMsg').innerText = myTurn ? "Choose a Topic" : "Opponent choosing...";
+            
+            if(myTurn) {
+                state.themes.forEach(t => {
+                    const b = document.createElement('div'); b.className = 'card-btn'; b.innerText = t.n;
+                    b.onclick = () => game.pickTheme(t);
+                    g.appendChild(b);
                 });
             }
-            this.showScreen('screen-theme');
-            this.updateScores();
         },
-        showDifficultyScreen: function(theme) {
-            document.getElementById('selectedThemeDisplay').innerText = theme.name;
-            document.getElementById('sliderWrapper').style.display = game.isMyTurn() ? 'block' : 'none';
-            document.getElementById('diffWaiting').style.display = game.isMyTurn() ? 'none' : 'block';
-            document.getElementById('diffPrompt').style.display = game.isMyTurn() ? 'block' : 'none';
-            document.getElementById('diffSlider').value = 5;
-            this.updateDiffDisplay(5);
-            this.showScreen('screen-difficulty');
+        diff: () => {
+            hideAll(); document.getElementById('phase-diff').style.display='block';
+            document.getElementById('themeLabel').innerText = state.theme.n;
+            const myTurn = game.isMyTurn();
+            document.getElementById('diffControls').style.display = myTurn ? 'block' : 'none';
+            document.getElementById('diffMsg').innerText = myTurn ? "Rate your knowledge (1-10)" : "Opponent is betting...";
+            document.getElementById('diffSlider').value = 5; 
+            document.getElementById('sliderVal').innerText = 5;
         },
-        showQuestionScreen: function(qData, points) {
-            document.getElementById('pointsAtStake').innerText = points;
-            document.getElementById('questionText').innerText = decodeHTML(qData.question);
-            const container = document.getElementById('answersContainer');
-            container.innerHTML = '';
-            const answers = [...qData.incorrect_answers, qData.correct_answer].sort(() => 0.5 - Math.random());
-            answers.forEach(ans => {
-                const btn = document.createElement('button');
-                btn.className = 'card-btn';
-                btn.innerText = decodeHTML(ans);
-                if(game.isMyTurn()) btn.onclick = () => game.submitAnswer(decodeHTML(ans));
-                else btn.disabled = true;
-                container.appendChild(btn);
+        qa: () => {
+            hideAll(); document.getElementById('phase-qa').style.display='block';
+            document.getElementById('pts').innerText = state.bet;
+            document.getElementById('qText').innerHTML = state.q.question;
+            document.getElementById('feedback').innerText = "";
+            document.getElementById('nextBtn').style.display = "none";
+            const g = document.getElementById('ansGrid'); g.innerHTML = '';
+            
+            const myTurn = game.isMyTurn();
+            document.getElementById('qaMsg').style.display = myTurn ? 'none' : 'block';
+            document.getElementById('qaMsg').innerText = "Opponent answering...";
+
+            const ans = [...state.q.incorrect_answers, state.q.correct_answer].sort(()=>0.5-Math.random());
+            ans.forEach(a => {
+                const b = document.createElement('button'); b.className = 'card-btn'; b.style.width="100%"; b.innerHTML = a;
+                if(myTurn) b.onclick = () => game.answer(a);
+                else b.disabled = true;
+                g.appendChild(b);
             });
-            document.getElementById('questionWaiting').style.display = game.isMyTurn() ? 'none' : 'block';
-            document.getElementById('questionWaiting').innerText = "Opponent is thinking...";
-            this.showScreen('screen-question');
         },
-        showFeedback: function(result, correctAns) {
-            document.querySelectorAll('#answersContainer button').forEach(btn => {
-                if(btn.innerText === correctAns) btn.classList.add('correct');
-                else btn.classList.add('disabled');
+        feedback: (correct, txt) => {
+            const btns = document.querySelectorAll('#ansGrid button');
+            btns.forEach(b => {
+                if(b.innerHTML === txt) b.classList.add('correct');
+                else b.classList.add('disabled');
             });
-            const fb = document.getElementById('feedback');
-            fb.innerText = result === 'correct' ? "CORRECT!" : "WRONG!";
-            fb.style.color = result === 'correct' ? "var(--accent)" : "var(--danger)";
-            if(isHost) document.getElementById('nextBtn').style.display = 'block';
-            else document.getElementById('questionWaiting').innerText = "Host is starting next round...";
+            const f = document.getElementById('feedback');
+            f.innerText = correct ? "CORRECT!" : "WRONG!";
+            f.style.color = correct ? "var(--accent)" : "var(--danger)";
+            
+            if(isHost) document.getElementById('nextBtn').style.display = "block";
+            else document.getElementById('qaMsg').innerText = "Waiting for host...";
         },
-        showWinScreen: function(winner) {
-            const iWon = (isHost && winner === 'host') || (!isHost && winner === 'client');
-            document.getElementById('winnerText').innerText = iWon ? "VICTORY" : "DEFEAT";
-            document.getElementById('finalScoreDisplay').innerText = `${state.scores.host} - ${state.scores.client}`;
-            this.showScreen('screen-win');
-        },
-        updateDiffDisplay: function(val) { document.getElementById('diffValue').innerText = val; }
+        win: (w) => {
+            document.getElementById('screen-game').classList.remove('active');
+            document.getElementById('screen-win').classList.add('active');
+            const iWon = (isHost && w==='host') || (!isHost && w==='client');
+            document.getElementById('winTitle').innerText = iWon ? "VICTORY!" : "DEFEAT";
+            document.getElementById('finalScore').innerText = `${state.scores.h} - ${state.scores.c}`;
+        }
     };
+    function hideAll(){
+        ['phase-theme','phase-diff','phase-qa'].forEach(id=>document.getElementById(id).style.display='none');
+    }
 </script>
 </body>
 </html>

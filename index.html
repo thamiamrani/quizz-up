@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IQ Battle: Max Compatibility</title>
+    <title>IQ Battle: UDP Mode</title>
     <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
     
@@ -13,8 +13,7 @@
             --accent: #00b894;
             --danger: #ff7675;
             --text-main: #2d3436;
-            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --glass-bg: rgba(255, 255, 255, 0.95);
+            --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
         }
 
         body {
@@ -29,12 +28,12 @@
         }
 
         #app {
-            background: var(--glass-bg);
+            background: white;
             width: 95%;
             max-width: 500px;
             padding: 2rem;
             border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             text-align: center;
             max-height: 95vh;
             overflow-y: auto;
@@ -42,13 +41,14 @@
 
         h1 { font-weight: 900; color: var(--primary); margin-top: 0; }
         
+        /* Buttons */
         .btn {
             background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px;
             font-size: 1rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 10px;
-            transition: 0.2s;
+            transition: 0.2s; box-shadow: 0 4px 0 #4834d4;
         }
-        .btn:disabled { background: #ccc; cursor: not-allowed; }
-        .btn:active { transform: scale(0.98); }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        .btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
         
         .input-box {
             padding: 12px; border-radius: 8px; border: 2px solid #ddd; width: 100%;
@@ -59,7 +59,13 @@
         .screen.active { display: block; animation: fadeIn 0.4s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Grid & Cards */
+        /* Status Bar */
+        #statusBox {
+            margin-top: 15px; padding: 10px; border-radius: 8px; background: #f1f2f6;
+            font-size: 0.85rem; font-weight: 600; color: #666; word-break: break-word;
+        }
+
+        /* Game Elements */
         .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         .card-btn {
             background: white; border: 2px solid #eee; padding: 15px; border-radius: 12px;
@@ -68,18 +74,11 @@
         }
         .card-btn:hover { border-color: var(--primary); background: #f8f9fa; }
         
-        /* Status Bar */
-        #statusBox {
-            margin-top: 15px; padding: 10px; border-radius: 8px; background: #f1f2f6;
-            font-size: 0.85rem; font-weight: 600; color: #666;
-        }
-        
-        /* Game UI */
-        .header { display: flex; justify-content: space-between; margin-bottom: 20px; background: #eee; padding: 10px; border-radius: 10px; }
         .correct { background: var(--accent) !important; color: white; border-color: var(--accent); }
         .wrong { background: var(--danger) !important; color: white; border-color: var(--danger); }
         
-        /* Slider */
+        /* Header */
+        .header { display: flex; justify-content: space-between; margin-bottom: 20px; background: #eee; padding: 10px; border-radius: 10px; }
         input[type=range] { width: 100%; accent-color: var(--primary); margin: 20px 0; }
         .diff-val { font-size: 3rem; font-weight: 900; color: var(--primary); }
     </style>
@@ -90,22 +89,21 @@
     <!-- 1. LOBBY -->
     <div id="screen-lobby" class="screen active">
         <h1>IQ BATTLE</h1>
-        <p style="font-size:0.9rem; color:#666;">Max Compatibility Mode</p>
+        <p style="font-size:0.9rem; color:#666;">UDP Mode (Firewall Bypass)</p>
         
-        <div style="background:white; padding:20px; border-radius:15px; margin-bottom:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+        <div style="background:#f8f9fa; padding:20px; border-radius:15px; margin-bottom:15px;">
             <h3>HOST</h3>
             <button class="btn" id="btnHost" onclick="lobby.hostGame()">Create Room</button>
             <div id="hostArea" style="display:none; margin-top:15px;">
-                <p>Your Room ID:</p>
+                <p>Room ID:</p>
                 <input type="text" id="myId" class="input-box" readonly onclick="this.select()">
-                <div class="loader"></div>
             </div>
         </div>
 
-        <div style="background:white; padding:20px; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+        <div style="background:#f8f9fa; padding:20px; border-radius:15px;">
             <h3>JOIN</h3>
             <input type="text" id="joinId" class="input-box" placeholder="Paste ID Here">
-            <button class="btn" id="btnJoin" style="background:#2d3436;" onclick="lobby.joinGame()">Join Room</button>
+            <button class="btn" id="btnJoin" style="background:#2d3436; box-shadow:0 4px 0 #000;" onclick="lobby.joinGame()">Join Room</button>
         </div>
 
         <div id="statusBox">Status: Ready</div>
@@ -118,7 +116,6 @@
             <div>Opponent: <span id="scoreOp">0</span></div>
         </div>
         
-        <!-- Phases -->
         <div id="phase-theme">
             <h2>Select Theme</h2>
             <div id="themeGrid" class="grid-container"></div>
@@ -155,17 +152,12 @@
 
 <script>
     // --- CONFIGURATION ---
-    // Massive list of STUN servers to bypass firewalls
     const PEER_CONFIG = {
         debug: 1,
         config: {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-                { urls: 'stun:stun2.l.google.com:19302' },
-                { urls: 'stun:stun3.l.google.com:19302' },
-                { urls: 'stun:stun4.l.google.com:19302' },
-                { urls: 'stun:stun.nextcloud.com:443' } // Port 443 helps bypass corporate firewalls
+                { urls: 'stun:stun1.l.google.com:19302' }
             ]
         }
     };
@@ -176,7 +168,6 @@
         {id:27,n:"Animals"}, {id:31,n:"Anime"}
     ];
 
-    // --- LOGGING ---
     function log(msg, err=false) {
         console.log(msg);
         const b = document.getElementById('statusBox');
@@ -187,24 +178,25 @@
 
     // --- NETWORK ---
     let peer, conn, isHost = false;
+    let heartbeatInterval;
 
     const lobby = {
         hostGame: () => {
             isHost = true;
             document.getElementById('btnHost').disabled = true;
-            log("Initializing Network...");
+            log("Opening Host Connection...");
             
             peer = new Peer(null, PEER_CONFIG);
             
             peer.on('open', (id) => {
                 document.getElementById('hostArea').style.display = 'block';
                 document.getElementById('myId').value = id;
-                log("Room Open. Waiting for player...");
+                log("Room Open. Share ID.");
             });
 
             peer.on('connection', (c) => {
                 conn = c;
-                log("Player Connecting...");
+                log("Connection Detected...");
                 lobby.bindEvents();
             });
             
@@ -217,33 +209,54 @@
             if(!id) return log("Enter ID first", true);
             
             document.getElementById('btnJoin').disabled = true;
-            log("Connecting to Room...");
+            log("Attempting Connection...");
             
             peer = new Peer(null, PEER_CONFIG);
             
             peer.on('open', () => {
-                log("Locating Host...");
-                conn = peer.connect(id, { reliable: true });
-                
-                // Fallback timeout
-                setTimeout(() => {
-                    if(!conn.open) log("Connection Stuck. Try Mobile Hotspot.", true);
-                }, 8000);
+                log("Connecting to Host...");
+                // CRITICAL FIX: reliable: false uses UDP instead of TCP
+                // This bypasses 'Negotiation Failed' errors on strict networks
+                conn = peer.connect(id, { 
+                    reliable: false, 
+                    serialization: 'json' 
+                });
 
                 lobby.bindEvents();
             });
             
-            peer.on('error', e => log("Join Error: " + e.type + ". Check ID.", true));
+            peer.on('error', e => log("Join Error: " + e.type, true));
         },
 
         bindEvents: () => {
             conn.on('open', () => {
-                log("Connected! Starting...");
-                setTimeout(() => { if(isHost) game.init(); }, 1000);
+                log("Connected! Starting Heartbeat...");
+                lobby.startHeartbeat();
+                setTimeout(() => { 
+                    if(isHost) game.init(); 
+                    else log("Waiting for Host...");
+                }, 1000);
             });
-            conn.on('data', data => handleData(data));
-            conn.on('close', () => alert("Disconnected"));
+            
+            conn.on('data', data => {
+                if(data.t === 'PING') return; // Ignore heartbeats
+                handleData(data);
+            });
+            
+            conn.on('close', () => {
+                clearInterval(heartbeatInterval);
+                alert("Connection Lost");
+            });
+            
             conn.on('error', e => log("Net Error: " + e, true));
+        },
+
+        // Keeps the UDP hole open
+        startHeartbeat: () => {
+            if(heartbeatInterval) clearInterval(heartbeatInterval);
+            heartbeatInterval = setInterval(() => {
+                if(conn && conn.open) conn.send({t: 'PING'});
+            }, 2000);
         },
 
         send: (type, payload) => {
@@ -252,9 +265,7 @@
     };
 
     // --- GAME LOGIC ---
-    const state = {
-        turn: 'host', scores: {h:0, c:0}, themes: [], theme: null, bet: 5, q: null
-    };
+    const state = { turn: 'host', scores: {h:0, c:0}, themes: [], theme: null, bet: 5, q: null };
 
     function handleData(msg) {
         switch(msg.t) {
@@ -263,10 +274,8 @@
             case 'THEME': state.theme = msg.p.theme; ui.diff(); break;
             case 'Q': state.q = msg.p.q; state.bet = msg.p.bet; ui.qa(); break;
             case 'SCORE': 
-                state.scores = msg.p.scores; 
-                state.turn = msg.p.turn; 
-                ui.updateScores(); 
-                ui.feedback(msg.p.res, msg.p.ans); 
+                state.scores = msg.p.scores; state.turn = msg.p.turn; 
+                ui.updateScores(); ui.feedback(msg.p.res, msg.p.ans); 
                 break;
             case 'WIN': state.scores = msg.p.scores; ui.win(msg.p.winner); break;
         }

@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IQ Battle: UDP Mode</title>
-    <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+    <title>IQ Battle: Firebase Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
     
     <style>
@@ -13,7 +12,8 @@
             --accent: #00b894;
             --danger: #ff7675;
             --text-main: #2d3436;
-            --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            --bg-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            --glass-bg: rgba(255, 255, 255, 0.9);
         }
 
         body {
@@ -28,12 +28,12 @@
         }
 
         #app {
-            background: white;
+            background: var(--glass-bg);
             width: 95%;
             max-width: 500px;
             padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
             text-align: center;
             max-height: 95vh;
             overflow-y: auto;
@@ -41,388 +41,367 @@
 
         h1 { font-weight: 900; color: var(--primary); margin-top: 0; }
         
-        /* Buttons */
         .btn {
             background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px;
             font-size: 1rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 10px;
             transition: 0.2s; box-shadow: 0 4px 0 #4834d4;
         }
         .btn:active { transform: translateY(4px); box-shadow: none; }
-        .btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+        .btn:disabled { background: #b2bec3; box-shadow: none; cursor: default; }
         
         .input-box {
-            padding: 12px; border-radius: 8px; border: 2px solid #ddd; width: 100%;
+            padding: 12px; border-radius: 8px; border: 2px solid #dfe6e9; width: 100%;
             font-size: 1.1rem; text-align: center; margin-bottom: 10px; font-family: 'Outfit', sans-serif;
+            font-weight: 700; color: var(--text-main);
         }
 
         .screen { display: none; }
         .screen.active { display: block; animation: fadeIn 0.4s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Status Bar */
-        #statusBox {
-            margin-top: 15px; padding: 10px; border-radius: 8px; background: #f1f2f6;
-            font-size: 0.85rem; font-weight: 600; color: #666; word-break: break-word;
-        }
-
-        /* Game Elements */
+        /* Game UI */
         .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         .card-btn {
             background: white; border: 2px solid #eee; padding: 15px; border-radius: 12px;
             cursor: pointer; font-weight: 600; min-height: 60px; display: flex; align-items: center; justify-content: center;
-            transition: 0.2s;
+            transition: 0.1s;
         }
-        .card-btn:hover { border-color: var(--primary); background: #f8f9fa; }
-        
-        .correct { background: var(--accent) !important; color: white; border-color: var(--accent); }
-        .wrong { background: var(--danger) !important; color: white; border-color: var(--danger); }
-        
-        /* Header */
-        .header { display: flex; justify-content: space-between; margin-bottom: 20px; background: #eee; padding: 10px; border-radius: 10px; }
+        .card-btn:hover { border-color: var(--primary); background: #fdfdfd; }
+        .correct { background: var(--accent) !important; color: white !important; border-color: var(--accent) !important; }
+        .wrong { background: var(--danger) !important; color: white !important; border-color: var(--danger) !important; }
+        .disabled { pointer-events: none; opacity: 0.6; }
+
+        .header { display: flex; justify-content: space-between; margin-bottom: 20px; background: rgba(255,255,255,0.5); padding: 10px; border-radius: 12px; }
         input[type=range] { width: 100%; accent-color: var(--primary); margin: 20px 0; }
         .diff-val { font-size: 3rem; font-weight: 900; color: var(--primary); }
+        
+        .status-pill { background: #ffeaa7; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; display: inline-block; margin-top: 10px; font-weight: 700; color: #d35400; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <!-- 1. LOBBY -->
+    <!-- 1. SETUP SCREEN (If Config Missing) -->
+    <div id="screen-setup" class="screen">
+        <h1>SETUP REQUIRED</h1>
+        <p>You need to add your Firebase Config to the HTML file code.</p>
+        <p style="font-size:0.8rem">Open index.html and look for "PASTE YOUR CONFIG HERE"</p>
+    </div>
+
+    <!-- 2. LOBBY -->
     <div id="screen-lobby" class="screen active">
         <h1>IQ BATTLE</h1>
-        <p style="font-size:0.9rem; color:#666;">UDP Mode (Firewall Bypass)</p>
+        <p style="color:#636e72;">Server-Based Multiplayer</p>
         
-        <div style="background:#f8f9fa; padding:20px; border-radius:15px; margin-bottom:15px;">
-            <h3>HOST</h3>
-            <button class="btn" id="btnHost" onclick="lobby.hostGame()">Create Room</button>
+        <div style="background:white; padding:20px; border-radius:16px; margin-bottom:15px;">
+            <h3>HOST GAME</h3>
+            <button class="btn" id="btnHost" onclick="lobby.createGame()">Create Room</button>
             <div id="hostArea" style="display:none; margin-top:15px;">
-                <p>Room ID:</p>
-                <input type="text" id="myId" class="input-box" readonly onclick="this.select()">
+                <p style="margin-bottom:5px;">Room ID:</p>
+                <input type="text" id="roomIdDisplay" class="input-box" readonly onclick="this.select()">
+                <div class="status-pill">Waiting for player...</div>
             </div>
         </div>
 
-        <div style="background:#f8f9fa; padding:20px; border-radius:15px;">
-            <h3>JOIN</h3>
-            <input type="text" id="joinId" class="input-box" placeholder="Paste ID Here">
-            <button class="btn" id="btnJoin" style="background:#2d3436; box-shadow:0 4px 0 #000;" onclick="lobby.joinGame()">Join Room</button>
+        <div style="background:white; padding:20px; border-radius:16px;">
+            <h3>JOIN GAME</h3>
+            <input type="text" id="joinInput" class="input-box" placeholder="Enter Room ID">
+            <button class="btn" onclick="lobby.joinGame()">Join Room</button>
         </div>
-
-        <div id="statusBox">Status: Ready</div>
     </div>
 
-    <!-- 2. GAME UI -->
+    <!-- 3. GAMEPLAY -->
     <div id="screen-game" class="screen">
         <div class="header">
-            <div>You: <span id="scoreMe">0</span></div>
-            <div>Opponent: <span id="scoreOp">0</span></div>
-        </div>
-        
-        <div id="phase-theme">
-            <h2>Select Theme</h2>
-            <div id="themeGrid" class="grid-container"></div>
-            <p id="themeMsg" style="margin-top:20px; color:#888;"></p>
+            <div><strong>You:</strong> <span id="myScore">0</span></div>
+            <div><strong>Enemy:</strong> <span id="opScore">0</span></div>
         </div>
 
-        <div id="phase-diff" style="display:none;">
-            <div style="background:var(--primary); color:white; padding:4px 12px; border-radius:20px; display:inline-block; font-size:0.8rem;">THEME</div>
-            <h2 id="themeLabel"></h2>
-            <p id="diffMsg">Rate your knowledge (1-10)</p>
-            <div id="diffControls">
-                <div class="diff-val"><span id="sliderVal">5</span></div>
-                <input type="range" min="1" max="10" value="5" oninput="document.getElementById('sliderVal').innerText=this.value" id="diffSlider">
-                <button class="btn" onclick="game.lockDifficulty()">CONFIRM</button>
-            </div>
-        </div>
+        <!-- Dynamic Content Area -->
+        <div id="gameContent"></div>
 
-        <div id="phase-qa" style="display:none;">
-            <div style="color:var(--primary); font-weight:800; text-transform:uppercase; font-size:0.8rem;">For <span id="pts">0</span> Points</div>
-            <h3 id="qText">Loading...</h3>
-            <div id="ansGrid" class="grid-container"></div>
-            <div id="feedback" style="margin-top:15px; font-weight:800; min-height:20px;"></div>
-            <button id="nextBtn" class="btn" style="display:none;" onclick="game.nextRound()">NEXT ROUND</button>
-            <p id="qaMsg" style="color:#888; display:none;"></p>
-        </div>
+        <div id="msgArea" style="margin-top:20px; font-weight:bold; color:#636e72;"></div>
     </div>
 
+    <!-- 4. WIN SCREEN -->
     <div id="screen-win" class="screen">
+        <div style="font-size:4rem">🏆</div>
         <h1 id="winTitle">GAME OVER</h1>
         <h2 id="finalScore"></h2>
-        <button class="btn" onclick="location.reload()">PLAY AGAIN</button>
+        <button class="btn" onclick="location.reload()">MAIN MENU</button>
     </div>
 </div>
 
-<script>
-    // --- CONFIGURATION ---
-    const PEER_CONFIG = {
-        debug: 1,
-        config: {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
-            ]
-        }
-    };
+<!-- FIREBASE SDK -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, update, get } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+    // ==========================================
+    // 🔴 PASTE YOUR CONFIG HERE 🔴
+    // ==========================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyArnXgw9HLpylJwW-zvvKQvsAqStogb3fc",
+        authDomain: "beturbrain.firebaseapp.com",
+        databaseURL: "https://beturbrain-default-rtdb.firebaseio.com",
+        projectId: "beturbrain",
+        storageBucket: "beturbrain.firebasestorage.app",
+        messagingSenderId: "1060550184148",
+        appId: "1:1060550184148:web:2153902d179accaf8d7f41"
+    };
+    // ==========================================
+
+    // Init Firebase
+    let app, db;
+    try {
+        app = initializeApp(firebaseConfig);
+        db = getDatabase(app);
+    } catch(e) {
+        document.getElementById('screen-lobby').classList.remove('active');
+        document.getElementById('screen-setup').classList.add('active');
+    }
+
+    // --- GAME CONSTANTS ---
     const CATEGORIES = [
         {id:9,n:"General"}, {id:11,n:"Movies"}, {id:12,n:"Music"}, {id:15,n:"Games"},
         {id:17,n:"Science"}, {id:21,n:"Sports"}, {id:22,n:"Geography"}, {id:23,n:"History"},
         {id:27,n:"Animals"}, {id:31,n:"Anime"}
     ];
 
-    function log(msg, err=false) {
-        console.log(msg);
-        const b = document.getElementById('statusBox');
-        b.innerText = msg;
-        b.style.color = err ? "red" : "#666";
-        b.style.background = err ? "#ffeaea" : "#f1f2f6";
-    }
+    let myRole = null; // 'host' or 'guest'
+    let roomRef = null;
+    let currentGameState = {};
 
-    // --- NETWORK ---
-    let peer, conn, isHost = false;
-    let heartbeatInterval;
+    // --- LOBBY LOGIC ---
+    window.lobby = {
+        createGame: async () => {
+            const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+            myRole = 'host';
+            roomRef = ref(db, 'games/' + roomId);
 
-    const lobby = {
-        hostGame: () => {
-            isHost = true;
+            // Initial State
+            await set(roomRef, {
+                status: 'waiting',
+                turn: Math.random() > 0.5 ? 'host' : 'guest',
+                scores: { host: 0, guest: 0 },
+                round: 0,
+                themes: [],
+                currentTheme: null,
+                bet: 5,
+                question: null,
+                feedback: null
+            });
+
+            document.getElementById('hostArea').style.display = 'block';
+            document.getElementById('roomIdDisplay').value = roomId;
             document.getElementById('btnHost').disabled = true;
-            log("Opening Host Connection...");
-            
-            peer = new Peer(null, PEER_CONFIG);
-            
-            peer.on('open', (id) => {
-                document.getElementById('hostArea').style.display = 'block';
-                document.getElementById('myId').value = id;
-                log("Room Open. Share ID.");
-            });
 
-            peer.on('connection', (c) => {
-                conn = c;
-                log("Connection Detected...");
-                lobby.bindEvents();
-            });
-            
-            peer.on('error', e => log("Host Error: " + e.type, true));
+            // Subscribe
+            onValue(roomRef, (snapshot) => handleUpdate(snapshot.val()));
         },
 
-        joinGame: () => {
-            isHost = false;
-            const id = document.getElementById('joinId').value.trim();
-            if(!id) return log("Enter ID first", true);
+        joinGame: async () => {
+            const roomId = document.getElementById('joinInput').value.trim().toUpperCase();
+            if (!roomId) return alert("Enter ID");
             
-            document.getElementById('btnJoin').disabled = true;
-            log("Attempting Connection...");
+            myRole = 'guest';
+            roomRef = ref(db, 'games/' + roomId);
+
+            const snap = await get(roomRef);
+            if (!snap.exists()) return alert("Room not found");
+
+            // Update status to start
+            update(roomRef, { status: 'playing' });
             
-            peer = new Peer(null, PEER_CONFIG);
-            
-            peer.on('open', () => {
-                log("Connecting to Host...");
-                // CRITICAL FIX: reliable: false uses UDP instead of TCP
-                // This bypasses 'Negotiation Failed' errors on strict networks
-                conn = peer.connect(id, { 
-                    reliable: false, 
-                    serialization: 'json' 
-                });
-
-                lobby.bindEvents();
-            });
-            
-            peer.on('error', e => log("Join Error: " + e.type, true));
-        },
-
-        bindEvents: () => {
-            conn.on('open', () => {
-                log("Connected! Starting Heartbeat...");
-                lobby.startHeartbeat();
-                setTimeout(() => { 
-                    if(isHost) game.init(); 
-                    else log("Waiting for Host...");
-                }, 1000);
-            });
-            
-            conn.on('data', data => {
-                if(data.t === 'PING') return; // Ignore heartbeats
-                handleData(data);
-            });
-            
-            conn.on('close', () => {
-                clearInterval(heartbeatInterval);
-                alert("Connection Lost");
-            });
-            
-            conn.on('error', e => log("Net Error: " + e, true));
-        },
-
-        // Keeps the UDP hole open
-        startHeartbeat: () => {
-            if(heartbeatInterval) clearInterval(heartbeatInterval);
-            heartbeatInterval = setInterval(() => {
-                if(conn && conn.open) conn.send({t: 'PING'});
-            }, 2000);
-        },
-
-        send: (type, payload) => {
-            if(conn && conn.open) conn.send({t:type, p:payload});
-        }
-    };
-
-    // --- GAME LOGIC ---
-    const state = { turn: 'host', scores: {h:0, c:0}, themes: [], theme: null, bet: 5, q: null };
-
-    function handleData(msg) {
-        switch(msg.t) {
-            case 'START': state.turn = msg.p.turn; ui.showGame(); break;
-            case 'ROUND': state.themes = msg.p.themes; state.turn = msg.p.turn; ui.round(); break;
-            case 'THEME': state.theme = msg.p.theme; ui.diff(); break;
-            case 'Q': state.q = msg.p.q; state.bet = msg.p.bet; ui.qa(); break;
-            case 'SCORE': 
-                state.scores = msg.p.scores; state.turn = msg.p.turn; 
-                ui.updateScores(); ui.feedback(msg.p.res, msg.p.ans); 
-                break;
-            case 'WIN': state.scores = msg.p.scores; ui.win(msg.p.winner); break;
-        }
-    }
-
-    const game = {
-        init: () => {
-            state.turn = Math.random()>0.5 ? 'host' : 'client';
-            lobby.send('START', {turn: state.turn});
-            ui.showGame();
-            game.newRound();
-        },
-        newRound: () => {
-            if(!isHost) return;
-            const t = [...CATEGORIES].sort(()=>0.5-Math.random()).slice(0,4);
-            state.themes = t;
-            lobby.send('ROUND', {themes:t, turn:state.turn});
-            ui.round();
-        },
-        pickTheme: (t) => {
-            if(!game.isMyTurn()) return;
-            state.theme = t;
-            lobby.send('THEME', {theme:t});
-            ui.diff();
-        },
-        lockDifficulty: () => {
-            const val = parseInt(document.getElementById('diffSlider').value);
-            state.bet = val;
-            document.getElementById('diffControls').style.display = 'none';
-            document.getElementById('diffMsg').innerText = "Fetching Question...";
-            game.fetchQ(state.theme.id, val);
-        },
-        fetchQ: async (cat, diff) => {
-            let d = diff<=3?'easy':(diff>=8?'hard':'medium');
-            try {
-                const r = await fetch(`https://opentdb.com/api.php?amount=1&category=${cat}&difficulty=${d}&type=multiple`);
-                const j = await r.json();
-                if(j.results && j.results.length) {
-                    state.q = j.results[0];
-                    lobby.send('Q', {q:state.q, bet:state.bet});
-                    ui.qa();
-                } else game.fetchQ(cat, diff);
-            } catch(e) { alert("API Error"); }
-        },
-        answer: (ans) => {
-            const correct = state.q.correct_answer === ans;
-            const pts = correct ? state.bet : 0;
-            if(state.turn === 'host') state.scores.h += pts; else state.scores.c += pts;
-            
-            let winner = null;
-            if(state.scores.h >= 25) winner = 'host';
-            if(state.scores.c >= 25) winner = 'client';
-
-            if(winner) {
-                lobby.send('WIN', {scores:state.scores, winner});
-                ui.win(winner);
-            } else {
-                const next = state.turn==='host'?'client':'host';
-                const payload = {scores:state.scores, res:correct, ans:state.q.correct_answer, turn:next};
-                lobby.send('SCORE', payload);
-                state.scores = payload.scores; state.turn = next;
-                ui.updateScores(); ui.feedback(correct, state.q.correct_answer);
+            // Generate first round if it hasn't started
+            if (snap.val().status === 'waiting') {
+                // Trigger host to generate (handled via state change usually, but we force sync here)
             }
-        },
-        isMyTurn: () => (isHost && state.turn==='host') || (!isHost && state.turn==='client')
+
+            // Subscribe
+            onValue(roomRef, (snapshot) => handleUpdate(snapshot.val()));
+        }
     };
 
-    // --- UI ---
-    function decode(html) { const t=document.createElement("textarea"); t.innerHTML=html; return t.value; }
+    // --- MAIN GAME LOOP (State Sync) ---
+    function handleUpdate(data) {
+        if (!data) return; // Room deleted
+        currentGameState = data;
 
-    const ui = {
-        showGame: () => {
+        // 1. Check for Lobby -> Game transition
+        if (data.status === 'playing' && document.getElementById('screen-lobby').classList.contains('active')) {
             document.getElementById('screen-lobby').classList.remove('active');
             document.getElementById('screen-game').classList.add('active');
-            ui.updateScores();
-        },
-        updateScores: () => {
-            document.getElementById('scoreMe').innerText = isHost ? state.scores.h : state.scores.c;
-            document.getElementById('scoreOp').innerText = isHost ? state.scores.c : state.scores.h;
-        },
-        round: () => {
-            hideAll(); document.getElementById('phase-theme').style.display='block';
-            const g = document.getElementById('themeGrid'); g.innerHTML = '';
-            const myTurn = game.isMyTurn();
-            document.getElementById('themeMsg').innerText = myTurn ? "Choose a Topic" : "Opponent choosing...";
-            
-            if(myTurn) {
-                state.themes.forEach(t => {
-                    const b = document.createElement('div'); b.className = 'card-btn'; b.innerText = t.n;
-                    b.onclick = () => game.pickTheme(t);
-                    g.appendChild(b);
-                });
-            }
-        },
-        diff: () => {
-            hideAll(); document.getElementById('phase-diff').style.display='block';
-            document.getElementById('themeLabel').innerText = state.theme.n;
-            const myTurn = game.isMyTurn();
-            document.getElementById('diffControls').style.display = myTurn ? 'block' : 'none';
-            document.getElementById('diffMsg').innerText = myTurn ? "Rate your knowledge (1-10)" : "Opponent is betting...";
-            document.getElementById('diffSlider').value = 5; 
-            document.getElementById('sliderVal').innerText = 5;
-        },
-        qa: () => {
-            hideAll(); document.getElementById('phase-qa').style.display='block';
-            document.getElementById('pts').innerText = state.bet;
-            document.getElementById('qText').innerHTML = state.q.question;
-            document.getElementById('feedback').innerText = "";
-            document.getElementById('nextBtn').style.display = "none";
-            const g = document.getElementById('ansGrid'); g.innerHTML = '';
-            
-            const myTurn = game.isMyTurn();
-            document.getElementById('qaMsg').style.display = myTurn ? 'none' : 'block';
-            document.getElementById('qaMsg').innerText = "Opponent answering...";
+            if(myRole === 'host') game.startNewRound();
+        }
 
-            const ans = [...state.q.incorrect_answers, state.q.correct_answer].sort(()=>0.5-Math.random());
-            ans.forEach(a => {
-                const b = document.createElement('button'); b.className = 'card-btn'; b.style.width="100%"; b.innerHTML = a;
-                if(myTurn) b.onclick = () => game.answer(a);
-                else b.disabled = true;
-                g.appendChild(b);
-            });
-        },
-        feedback: (correct, txt) => {
-            const btns = document.querySelectorAll('#ansGrid button');
-            btns.forEach(b => {
-                if(b.innerHTML === txt) b.classList.add('correct');
-                else b.classList.add('disabled');
-            });
-            const f = document.getElementById('feedback');
-            f.innerText = correct ? "CORRECT!" : "WRONG!";
-            f.style.color = correct ? "var(--accent)" : "var(--danger)";
+        // 2. Update Scores
+        const p1Score = myRole === 'host' ? data.scores.host : data.scores.guest;
+        const p2Score = myRole === 'host' ? data.scores.guest : data.scores.host;
+        document.getElementById('myScore').innerText = p1Score;
+        document.getElementById('opScore').innerText = p2Score;
+
+        // 3. Render Phase
+        renderPhase(data);
+    }
+
+    function renderPhase(data) {
+        const content = document.getElementById('gameContent');
+        const msg = document.getElementById('msgArea');
+        const isMyTurn = data.turn === myRole;
+
+        // WIN CHECK
+        if(data.status === 'finished') {
+             document.getElementById('screen-game').classList.remove('active');
+             document.getElementById('screen-win').classList.add('active');
+             const iWon = data.winner === myRole;
+             document.getElementById('winTitle').innerText = iWon ? "VICTORY" : "DEFEAT";
+             document.getElementById('finalScore').innerText = `${data.scores.host} - ${data.scores.guest}`;
+             return;
+        }
+
+        // PHASE: THEME SELECTION
+        if (data.phase === 'theme') {
+            msg.innerText = isMyTurn ? "Pick a Topic" : "Opponent is choosing...";
+            if (isMyTurn) {
+                let html = `<div class="grid-container">`;
+                data.themes.forEach((t, i) => {
+                    html += `<button class="card-btn" onclick="game.selectTheme(${i})">${t.n}</button>`;
+                });
+                html += `</div>`;
+                content.innerHTML = `<h2>Select Theme</h2>${html}`;
+            } else {
+                content.innerHTML = `<h2>Waiting...</h2><div class="loader">Opponent choosing theme</div>`;
+            }
+        }
+
+        // PHASE: BETTING (DIFFICULTY)
+        if (data.phase === 'bet') {
+            msg.innerText = isMyTurn ? "Rate your knowledge" : "Opponent is betting...";
+            if (isMyTurn) {
+                content.innerHTML = `
+                    <div style="background:#6c5ce7; color:white; padding:5px 15px; border-radius:20px; display:inline-block;">${data.currentTheme.n}</div>
+                    <h2>How confident are you?</h2>
+                    <div class="diff-val"><span id="sliderVal">5</span></div>
+                    <input type="range" min="1" max="10" value="5" oninput="document.getElementById('sliderVal').innerText=this.value" id="diffSlider">
+                    <button class="btn" onclick="game.submitBet()">Confirm</button>
+                `;
+            } else {
+                 content.innerHTML = `<h2>${data.currentTheme.n}</h2><p>Opponent is betting...</p>`;
+            }
+        }
+
+        // PHASE: QUESTION
+        if (data.phase === 'question') {
+            msg.innerText = isMyTurn ? "Answer the question" : "Opponent is thinking...";
             
-            if(isHost) document.getElementById('nextBtn').style.display = "block";
-            else document.getElementById('qaMsg').innerText = "Waiting for host...";
+            let ansHtml = '<div class="grid-container">';
+            // We need to render answers. If already answered (feedback exists), show colors
+            data.question.answers.forEach(ans => {
+                let extraClass = '';
+                if(data.feedback) {
+                    if(ans === data.question.correct) extraClass = 'correct';
+                    else extraClass = 'disabled';
+                }
+                
+                // If I am active player, click works. If not, disabled.
+                let clickAction = isMyTurn && !data.feedback ? `onclick="game.submitAnswer('${ans.replace(/'/g, "\\'")}')"` : '';
+                if (!isMyTurn) extraClass += ' disabled';
+
+                ansHtml += `<button class="card-btn ${extraClass}" ${clickAction}>${ans}</button>`;
+            });
+            ansHtml += '</div>';
+
+            let feedbackHtml = data.feedback ? `<div style="margin-top:20px; font-weight:900; font-size:1.2rem; color:${data.feedback.correct ? '#00b894' : '#ff7675'}">${data.feedback.text}</div>` : '';
+            
+            let nextBtn = (myRole === 'host' && data.feedback) ? `<button class="btn" onclick="game.startNewRound()">Next Round</button>` : '';
+            if(myRole !== 'host' && data.feedback) nextBtn = `<p style="margin-top:20px">Waiting for Host...</p>`;
+
+            content.innerHTML = `
+                <div style="font-weight:900; color:#6c5ce7;">FOR ${data.bet} POINTS</div>
+                <h3 style="margin:10px 0 20px 0">${data.question.q}</h3>
+                ${ansHtml}
+                ${feedbackHtml}
+                ${nextBtn}
+            `;
+        }
+    }
+
+    // --- GAME ACTIONS ---
+    window.game = {
+        startNewRound: () => {
+            // Only Host Generates Data
+            const themes = [...CATEGORIES].sort(()=>0.5-Math.random()).slice(0,4);
+            update(roomRef, {
+                phase: 'theme',
+                themes: themes,
+                feedback: null
+            });
         },
-        win: (w) => {
-            document.getElementById('screen-game').classList.remove('active');
-            document.getElementById('screen-win').classList.add('active');
-            const iWon = (isHost && w==='host') || (!isHost && w==='client');
-            document.getElementById('winTitle').innerText = iWon ? "VICTORY!" : "DEFEAT";
-            document.getElementById('finalScore').innerText = `${state.scores.h} - ${state.scores.c}`;
+
+        selectTheme: (index) => {
+            const theme = currentGameState.themes[index];
+            update(roomRef, {
+                phase: 'bet',
+                currentTheme: theme
+            });
+        },
+
+        submitBet: async () => {
+            const val = parseInt(document.getElementById('diffSlider').value);
+            // Fetch Question
+            let apiDiff = val<=3?'easy':(val>=8?'hard':'medium');
+            document.getElementById('gameContent').innerHTML = "Loading Question...";
+            
+            try {
+                const res = await fetch(`https://opentdb.com/api.php?amount=1&category=${currentGameState.currentTheme.id}&difficulty=${apiDiff}&type=multiple`);
+                const json = await res.json();
+                const qData = json.results[0];
+                const allAns = [...qData.incorrect_answers, qData.correct_answer].sort(()=>0.5-Math.random());
+
+                update(roomRef, {
+                    phase: 'question',
+                    bet: val,
+                    question: {
+                        q: qData.question,
+                        correct: qData.correct_answer,
+                        answers: allAns
+                    }
+                });
+            } catch(e) { alert("Error fetching question"); }
+        },
+
+        submitAnswer: (ans) => {
+            const isCorrect = ans === currentGameState.question.correct;
+            const points = isCorrect ? currentGameState.bet : 0;
+            
+            // Calculate new scores
+            const newScores = { ...currentGameState.scores };
+            if (currentGameState.turn === 'host') newScores.host += points;
+            else newScores.guest += points;
+
+            // Check Win
+            let status = 'playing';
+            let winner = null;
+            if(newScores.host >= 25) { status = 'finished'; winner = 'host'; }
+            else if(newScores.guest >= 25) { status = 'finished'; winner = 'guest'; }
+
+            // Next Turn
+            const nextTurn = currentGameState.turn === 'host' ? 'guest' : 'host';
+
+            update(roomRef, {
+                scores: newScores,
+                status: status,
+                winner: winner,
+                turn: nextTurn, // Swap turn for next round
+                feedback: {
+                    correct: isCorrect,
+                    text: isCorrect ? "CORRECT!" : "WRONG!"
+                }
+            });
         }
     };
-    function hideAll(){
-        ['phase-theme','phase-diff','phase-qa'].forEach(id=>document.getElementById(id).style.display='none');
-    }
 </script>
 </body>
 </html>

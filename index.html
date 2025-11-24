@@ -2,144 +2,286 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IQ Battle: Firebase Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IQ Battle: Glass OS</title>
     
     <style>
         :root {
-            --primary: #6c5ce7;
-            --accent: #00b894;
-            --danger: #ff7675;
-            --text-main: #2d3436;
-            --bg-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            --glass-bg: rgba(255, 255, 255, 0.9);
+            --ios-blue: #007AFF;
+            --ios-green: #34C759;
+            --ios-red: #FF3B30;
+            --ios-text: #000000;
+            --ios-subtext: #8E8E93;
+            --glass-material: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
         }
 
+        /* 1. iOS 16 ANIMATED WALLPAPER */
         body {
-            font-family: 'Outfit', sans-serif;
-            background: var(--bg-gradient);
-            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
+            height: 100vh;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            background: #ffffff;
+            color: var(--ios-text);
         }
 
+        /* The blurred orbs in background */
+        .wallpaper {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 10% 20%, rgb(239, 246, 249) 0%, rgb(206, 239, 253) 90%);
+            overflow: hidden;
+        }
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.8;
+            animation: float 10s infinite ease-in-out alternate;
+        }
+        .orb-1 { width: 300px; height: 300px; background: #a2d2ff; top: -50px; left: -50px; }
+        .orb-2 { width: 400px; height: 400px; background: #ffc8dd; bottom: -100px; right: -50px; animation-delay: -5s; }
+        .orb-3 { width: 250px; height: 250px; background: #bde0fe; top: 40%; left: 40%; animation-delay: -2s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(20px, -40px) scale(1.1); }
+        }
+
+        /* 2. GLASS PANEL CONTAINER */
         #app {
-            background: var(--glass-bg);
-            width: 95%;
-            max-width: 500px;
-            padding: 2rem;
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-            text-align: center;
-            max-height: 95vh;
-            overflow-y: auto;
+            position: relative;
+            width: 90%;
+            max-width: 450px;
+            height: 85vh; /* Fixed height for consistency */
+            background: var(--glass-material);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 40px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 30px 20px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
         }
 
-        h1 { font-weight: 900; color: var(--primary); margin-top: 0; }
-        
+        /* Typography */
+        h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.5px; margin: 10px 0 5px 0; text-align: center; }
+        h2 { font-size: 22px; font-weight: 700; margin: 0 0 15px 0; letter-spacing: -0.3px; }
+        p { color: var(--ios-subtext); font-size: 15px; margin-top: 5px; text-align: center; }
+        .sub-header { font-size: 13px; font-weight: 600; text-transform: uppercase; color: var(--ios-subtext); letter-spacing: 1px; margin-bottom: 5px; }
+
+        /* 3. UI COMPONENTS */
         .btn {
-            background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px;
-            font-size: 1rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 10px;
-            transition: 0.2s; box-shadow: 0 4px 0 #4834d4;
+            background: var(--ios-text);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 20px;
+            font-size: 17px;
+            font-weight: 600;
+            margin-top: auto; /* Pushes button to bottom */
+            cursor: pointer;
+            transition: transform 0.1s;
+            -webkit-tap-highlight-color: transparent;
         }
-        .btn:active { transform: translateY(4px); box-shadow: none; }
-        .btn:disabled { background: #b2bec3; box-shadow: none; cursor: default; }
-        
+        .btn:active { transform: scale(0.96); opacity: 0.9; }
+        .btn:disabled { background: #E5E5EA; color: #8E8E93; cursor: default; }
+
         .input-box {
-            padding: 12px; border-radius: 8px; border: 2px solid #dfe6e9; width: 100%;
-            font-size: 1.1rem; text-align: center; margin-bottom: 10px; font-family: 'Outfit', sans-serif;
-            font-weight: 700; color: var(--text-main);
+            background: rgba(255,255,255,0.5);
+            border: none;
+            border-radius: 15px;
+            padding: 15px;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            outline: none;
+            font-family: inherit;
         }
 
-        .screen { display: none; }
-        .screen.active { display: block; animation: fadeIn 0.4s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Header (Scoreboard) */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(255,255,255,0.4);
+            padding: 8px 8px;
+            border-radius: 25px;
+            margin-bottom: 20px;
+        }
+        .player-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            background: white;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: 0.3s;
+            opacity: 0.6;
+        }
+        .player-pill.active { opacity: 1; transform: scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .score-bubble { background: #F2F2F7; padding: 4px 10px; border-radius: 12px; font-weight: 700; }
 
-        /* Game UI */
-        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        /* Game Content Area */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* Cards Grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+        }
         .card-btn {
-            background: white; border: 2px solid #eee; padding: 15px; border-radius: 12px;
-            cursor: pointer; font-weight: 600; min-height: 60px; display: flex; align-items: center; justify-content: center;
-            transition: 0.1s;
+            background: rgba(255,255,255,0.8);
+            border: none;
+            padding: 20px 10px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--ios-text);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            transition: all 0.2s;
+            min-height: 80px;
+            display: flex; align-items: center; justify-content: center;
+            line-height: 1.2;
         }
-        .card-btn:hover { border-color: var(--primary); background: #fdfdfd; }
-        .correct { background: var(--accent) !important; color: white !important; border-color: var(--accent) !important; }
-        .wrong { background: var(--danger) !important; color: white !important; border-color: var(--danger) !important; }
-        .disabled { pointer-events: none; opacity: 0.6; }
+        .card-btn:hover { background: white; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+        .card-btn.correct { background: var(--ios-green) !important; color: white !important; }
+        .card-btn.wrong { background: var(--ios-red) !important; color: white !important; }
+        .card-btn.disabled { opacity: 0.5; pointer-events: none; }
 
-        .header { display: flex; justify-content: space-between; margin-bottom: 20px; background: rgba(255,255,255,0.5); padding: 10px; border-radius: 12px; }
-        input[type=range] { width: 100%; accent-color: var(--primary); margin: 20px 0; }
-        .diff-val { font-size: 3rem; font-weight: 900; color: var(--primary); }
+        /* Slider */
+        .slider-wrapper { width: 100%; margin: 20px 0; background: white; padding: 20px; border-radius: 25px; }
+        input[type=range] { width: 100%; accent-color: var(--ios-blue); }
+        .diff-display { font-size: 48px; font-weight: 800; color: var(--ios-blue); margin-bottom: 10px; }
+
+        /* Transitions */
+        .screen { display: none; width: 100%; height: 100%; flex-direction: column; }
+        .screen.active { display: flex; animation: slideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
         
-        .status-pill { background: #ffeaa7; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; display: inline-block; margin-top: 10px; font-weight: 700; color: #d35400; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Loading Spinner */
+        .spinner { width: 40px; height: 40px; border: 4px solid #E5E5EA; border-top-color: var(--ios-blue); border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
     </style>
 </head>
 <body>
 
-<div id="app">
-    <!-- 1. SETUP SCREEN (If Config Missing) -->
-    <div id="screen-setup" class="screen">
-        <h1>SETUP REQUIRED</h1>
-        <p>You need to add your Firebase Config to the HTML file code.</p>
-        <p style="font-size:0.8rem">Open index.html and look for "PASTE YOUR CONFIG HERE"</p>
+    <div class="wallpaper">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
     </div>
 
-    <!-- 2. LOBBY -->
-    <div id="screen-lobby" class="screen active">
-        <h1>IQ BATTLE</h1>
-        <p style="color:#636e72;">Server-Based Multiplayer</p>
-        
-        <div style="background:white; padding:20px; border-radius:16px; margin-bottom:15px;">
-            <h3>HOST GAME</h3>
-            <button class="btn" id="btnHost" onclick="lobby.createGame()">Create Room</button>
-            <div id="hostArea" style="display:none; margin-top:15px;">
-                <p style="margin-bottom:5px;">Room ID:</p>
-                <input type="text" id="roomIdDisplay" class="input-box" readonly onclick="this.select()">
-                <div class="status-pill">Waiting for player...</div>
+    <div id="app">
+        <!-- 1. SETUP ERROR SCREEN -->
+        <div id="screen-setup" class="screen">
+            <div class="content-area">
+                <h1>Configuration Needed</h1>
+                <p>Please edit the HTML file and paste your Firebase Config keys at the bottom.</p>
             </div>
         </div>
 
-        <div style="background:white; padding:20px; border-radius:16px;">
-            <h3>JOIN GAME</h3>
-            <input type="text" id="joinInput" class="input-box" placeholder="Enter Room ID">
-            <button class="btn" onclick="lobby.joinGame()">Join Room</button>
+        <!-- 2. LOBBY -->
+        <div id="screen-lobby" class="screen active">
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                <div style="font-size:60px; margin-bottom:10px;">🧠</div>
+                <h1>IQ Battle</h1>
+                <p style="margin-bottom: 40px;">Glass OS Edition</p>
+
+                <!-- Host Flow -->
+                <div id="hostSection" style="width:100%;">
+                    <button class="btn" id="btnHost" onclick="lobby.createGame()">New Game</button>
+                    <div id="hostArea" style="display:none; margin-top:20px; background:rgba(255,255,255,0.6); padding:20px; border-radius:24px;">
+                        <span class="sub-header">ROOM CODE</span>
+                        <input type="text" id="roomIdDisplay" class="input-box" readonly onclick="this.select()" style="margin:10px 0 0 0; background:white;">
+                        <div style="display:flex; align-items:center; justify-content:center; margin-top:15px; gap:8px;">
+                            <div class="spinner" style="width:16px; height:16px; border-width:2px; margin:0;"></div>
+                            <span style="font-size:14px; font-weight:600; color:var(--ios-subtext);">Waiting for player...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="width:100%; height:1px; background:rgba(0,0,0,0.1); margin: 30px 0;"></div>
+
+                <!-- Join Flow -->
+                <div id="joinSection" style="width:100%;">
+                    <input type="text" id="joinInput" class="input-box" placeholder="Enter Code">
+                    <button class="btn" style="background:rgba(0,0,0,0.05); color:black;" onclick="lobby.joinGame()">Join Game</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. GAMEPLAY -->
+        <div id="screen-game" class="screen">
+            <div class="header">
+                <div id="pill-host" class="player-pill">
+                    <span>You</span> <span class="score-bubble" id="myScore">0</span>
+                </div>
+                <div id="pill-guest" class="player-pill">
+                    <span>Enemy</span> <span class="score-bubble" id="opScore">0</span>
+                </div>
+            </div>
+
+            <div id="gameContent" class="content-area">
+                <!-- Dynamic Game Content Injected Here -->
+            </div>
+            
+            <div id="footerMsg" style="margin-top:20px; height:20px; font-weight:600; color:var(--ios-subtext); text-align:center;"></div>
+        </div>
+
+        <!-- 4. WIN SCREEN -->
+        <div id="screen-win" class="screen">
+            <div class="content-area">
+                <div style="font-size:80px; margin-bottom:20px;">🏆</div>
+                <h1 id="winTitle">VICTORY</h1>
+                <p>Final Score</p>
+                <div style="font-size:48px; font-weight:800; margin:20px 0; color:var(--ios-blue);" id="finalScore">0 - 0</div>
+            </div>
+            <button class="btn" onclick="location.reload()">Back to Menu</button>
         </div>
     </div>
 
-    <!-- 3. GAMEPLAY -->
-    <div id="screen-game" class="screen">
-        <div class="header">
-            <div><strong>You:</strong> <span id="myScore">0</span></div>
-            <div><strong>Enemy:</strong> <span id="opScore">0</span></div>
-        </div>
-
-        <!-- Dynamic Content Area -->
-        <div id="gameContent"></div>
-
-        <div id="msgArea" style="margin-top:20px; font-weight:bold; color:#636e72;"></div>
-    </div>
-
-    <!-- 4. WIN SCREEN -->
-    <div id="screen-win" class="screen">
-        <div style="font-size:4rem">🏆</div>
-        <h1 id="winTitle">GAME OVER</h1>
-        <h2 id="finalScore"></h2>
-        <button class="btn" onclick="location.reload()">MAIN MENU</button>
-    </div>
-</div>
-
-<!-- FIREBASE SDK -->
+<!-- FIREBASE & GAME LOGIC -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, set, onValue, update, get } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     // ==========================================
-    // 🔴 PASTE YOUR CONFIG HERE 🔴
+    // 🔴 PASTE YOUR FIREBASE CONFIG BELOW 🔴
     // ==========================================
     const firebaseConfig = {
         apiKey: "AIzaSyArnXgw9HLpylJwW-zvvKQvsAqStogb3fc",
@@ -152,7 +294,6 @@
     };
     // ==========================================
 
-    // Init Firebase
     let app, db;
     try {
         app = initializeApp(firebaseConfig);
@@ -162,176 +303,185 @@
         document.getElementById('screen-setup').classList.add('active');
     }
 
-    // --- GAME CONSTANTS ---
     const CATEGORIES = [
         {id:9,n:"General"}, {id:11,n:"Movies"}, {id:12,n:"Music"}, {id:15,n:"Games"},
         {id:17,n:"Science"}, {id:21,n:"Sports"}, {id:22,n:"Geography"}, {id:23,n:"History"},
         {id:27,n:"Animals"}, {id:31,n:"Anime"}
     ];
 
-    let myRole = null; // 'host' or 'guest'
+    let myRole = null; 
     let roomRef = null;
     let currentGameState = {};
 
-    // --- LOBBY LOGIC ---
     window.lobby = {
         createGame: async () => {
-            const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const roomId = Math.random().toString(36).substring(2, 6).toUpperCase(); // Short 4 char code
             myRole = 'host';
-            roomRef = ref(db, 'games/' + roomId);
+            roomRef = ref(db, 'glassgame/' + roomId);
 
-            // Initial State
             await set(roomRef, {
                 status: 'waiting',
                 turn: Math.random() > 0.5 ? 'host' : 'guest',
                 scores: { host: 0, guest: 0 },
-                round: 0,
                 themes: [],
                 currentTheme: null,
                 bet: 5,
                 question: null,
+                phase: 'lobby',
                 feedback: null
             });
 
             document.getElementById('hostArea').style.display = 'block';
             document.getElementById('roomIdDisplay').value = roomId;
-            document.getElementById('btnHost').disabled = true;
+            document.getElementById('joinSection').style.display = 'none';
+            document.getElementById('btnHost').style.display = 'none';
 
-            // Subscribe
-            onValue(roomRef, (snapshot) => handleUpdate(snapshot.val()));
+            onValue(roomRef, (snap) => handleUpdate(snap.val()));
         },
 
         joinGame: async () => {
             const roomId = document.getElementById('joinInput').value.trim().toUpperCase();
-            if (!roomId) return alert("Enter ID");
+            if (!roomId) return;
             
             myRole = 'guest';
-            roomRef = ref(db, 'games/' + roomId);
-
+            roomRef = ref(db, 'glassgame/' + roomId);
             const snap = await get(roomRef);
+            
             if (!snap.exists()) return alert("Room not found");
 
-            // Update status to start
             update(roomRef, { status: 'playing' });
-            
-            // Generate first round if it hasn't started
-            if (snap.val().status === 'waiting') {
-                // Trigger host to generate (handled via state change usually, but we force sync here)
-            }
-
-            // Subscribe
-            onValue(roomRef, (snapshot) => handleUpdate(snapshot.val()));
+            onValue(roomRef, (snap) => handleUpdate(snap.val()));
         }
     };
 
-    // --- MAIN GAME LOOP (State Sync) ---
     function handleUpdate(data) {
-        if (!data) return; // Room deleted
+        if (!data) return;
         currentGameState = data;
 
-        // 1. Check for Lobby -> Game transition
+        // Transition from Lobby to Game
         if (data.status === 'playing' && document.getElementById('screen-lobby').classList.contains('active')) {
             document.getElementById('screen-lobby').classList.remove('active');
             document.getElementById('screen-game').classList.add('active');
-            if(myRole === 'host') game.startNewRound();
+            // If I am host, kick off the first round logic immediately
+            if(myRole === 'host') game.initRound();
         }
 
-        // 2. Update Scores
-        const p1Score = myRole === 'host' ? data.scores.host : data.scores.guest;
-        const p2Score = myRole === 'host' ? data.scores.guest : data.scores.host;
-        document.getElementById('myScore').innerText = p1Score;
-        document.getElementById('opScore').innerText = p2Score;
+        // Score UI
+        const p1 = myRole === 'host' ? data.scores.host : data.scores.guest;
+        const p2 = myRole === 'host' ? data.scores.guest : data.scores.host;
+        document.getElementById('myScore').innerText = p1;
+        document.getElementById('opScore').innerText = p2;
 
-        // 3. Render Phase
-        renderPhase(data);
+        // Active Player Pill styling
+        const isMyTurn = data.turn === myRole;
+        if(isMyTurn) {
+            document.getElementById('pill-host').classList.add('active');
+            document.getElementById('pill-guest').classList.remove('active');
+        } else {
+            document.getElementById('pill-host').classList.remove('active');
+            document.getElementById('pill-guest').classList.add('active');
+        }
+
+        renderGame(data, isMyTurn);
     }
 
-    function renderPhase(data) {
+    function renderGame(data, isMyTurn) {
         const content = document.getElementById('gameContent');
-        const msg = document.getElementById('msgArea');
-        const isMyTurn = data.turn === myRole;
+        const footer = document.getElementById('footerMsg');
 
-        // WIN CHECK
+        // CHECK WIN
         if(data.status === 'finished') {
-             document.getElementById('screen-game').classList.remove('active');
-             document.getElementById('screen-win').classList.add('active');
-             const iWon = data.winner === myRole;
-             document.getElementById('winTitle').innerText = iWon ? "VICTORY" : "DEFEAT";
-             document.getElementById('finalScore').innerText = `${data.scores.host} - ${data.scores.guest}`;
-             return;
+            document.getElementById('screen-game').classList.remove('active');
+            document.getElementById('screen-win').classList.add('active');
+            const iWon = data.winner === myRole;
+            document.getElementById('winTitle').innerText = iWon ? "Victory" : "Defeat";
+            document.getElementById('finalScore').innerText = `${data.scores.host} - ${data.scores.guest}`;
+            return;
         }
 
-        // PHASE: THEME SELECTION
+        // 1. THEME PHASE
         if (data.phase === 'theme') {
-            msg.innerText = isMyTurn ? "Pick a Topic" : "Opponent is choosing...";
+            footer.innerText = isMyTurn ? "Tap a card to select" : "Opponent is choosing...";
             if (isMyTurn) {
-                let html = `<div class="grid-container">`;
+                let html = `<span class="sub-header">CHOOSE TOPIC</span><h2>Select Category</h2><div class="grid-container">`;
                 data.themes.forEach((t, i) => {
                     html += `<button class="card-btn" onclick="game.selectTheme(${i})">${t.n}</button>`;
                 });
                 html += `</div>`;
-                content.innerHTML = `<h2>Select Theme</h2>${html}`;
+                content.innerHTML = html;
             } else {
-                content.innerHTML = `<h2>Waiting...</h2><div class="loader">Opponent choosing theme</div>`;
+                content.innerHTML = `<div class="spinner"></div><h2>Waiting for opponent</h2><p>They are picking a category</p>`;
             }
         }
 
-        // PHASE: BETTING (DIFFICULTY)
-        if (data.phase === 'bet') {
-            msg.innerText = isMyTurn ? "Rate your knowledge" : "Opponent is betting...";
+        // 2. BET PHASE
+        else if (data.phase === 'bet') {
+            footer.innerText = isMyTurn ? "Drag slider to adjust" : "Opponent is betting...";
             if (isMyTurn) {
                 content.innerHTML = `
-                    <div style="background:#6c5ce7; color:white; padding:5px 15px; border-radius:20px; display:inline-block;">${data.currentTheme.n}</div>
-                    <h2>How confident are you?</h2>
-                    <div class="diff-val"><span id="sliderVal">5</span></div>
-                    <input type="range" min="1" max="10" value="5" oninput="document.getElementById('sliderVal').innerText=this.value" id="diffSlider">
-                    <button class="btn" onclick="game.submitBet()">Confirm</button>
+                    <span class="sub-header">CATEGORY</span>
+                    <h2>${data.currentTheme.n}</h2>
+                    <div class="slider-wrapper">
+                        <div class="diff-display"><span id="sliderVal">5</span></div>
+                        <input type="range" min="1" max="10" value="5" oninput="document.getElementById('sliderVal').innerText=this.value" id="diffSlider">
+                    </div>
+                    <p>Rate your knowledge level</p>
+                    <button class="btn" onclick="game.submitBet()">Confirm Level</button>
                 `;
             } else {
-                 content.innerHTML = `<h2>${data.currentTheme.n}</h2><p>Opponent is betting...</p>`;
+                content.innerHTML = `<div class="spinner"></div><h2>${data.currentTheme.n}</h2><p>Opponent is gauging difficulty...</p>`;
             }
         }
 
-        // PHASE: QUESTION
-        if (data.phase === 'question') {
-            msg.innerText = isMyTurn ? "Answer the question" : "Opponent is thinking...";
-            
+        // 3. QUESTION PHASE
+        else if (data.phase === 'question') {
+            footer.innerText = "";
             let ansHtml = '<div class="grid-container">';
-            // We need to render answers. If already answered (feedback exists), show colors
+            
+            // Render Answers
             data.question.answers.forEach(ans => {
-                let extraClass = '';
-                if(data.feedback) {
-                    if(ans === data.question.correct) extraClass = 'correct';
-                    else extraClass = 'disabled';
-                }
+                let css = 'card-btn';
+                let onclick = '';
                 
-                // If I am active player, click works. If not, disabled.
-                let clickAction = isMyTurn && !data.feedback ? `onclick="game.submitAnswer('${ans.replace(/'/g, "\\'")}')"` : '';
-                if (!isMyTurn) extraClass += ' disabled';
+                // Show Results if feedback exists
+                if (data.feedback) {
+                    if (ans === data.question.correct) css += ' correct';
+                    else if (data.feedback.lastAnswer === ans) css += ' wrong';
+                    else css += ' disabled';
+                } else if (isMyTurn) {
+                    // Interactive mode
+                    onclick = `onclick="game.submitAnswer('${ans.replace(/'/g, "\\'")}')"`;
+                } else {
+                    css += ' disabled';
+                }
 
-                ansHtml += `<button class="card-btn ${extraClass}" ${clickAction}>${ans}</button>`;
+                ansHtml += `<button class="${css}" ${onclick}>${ans}</button>`;
             });
             ansHtml += '</div>';
 
-            let feedbackHtml = data.feedback ? `<div style="margin-top:20px; font-weight:900; font-size:1.2rem; color:${data.feedback.correct ? '#00b894' : '#ff7675'}">${data.feedback.text}</div>` : '';
-            
-            let nextBtn = (myRole === 'host' && data.feedback) ? `<button class="btn" onclick="game.startNewRound()">Next Round</button>` : '';
-            if(myRole !== 'host' && data.feedback) nextBtn = `<p style="margin-top:20px">Waiting for Host...</p>`;
+            // Next Round Button (Host Only)
+            let actionArea = '';
+            if (data.feedback) {
+                if (myRole === 'host') {
+                    actionArea = `<button class="btn" onclick="game.nextRound()">Next Round</button>`;
+                } else {
+                    actionArea = `<p style="margin-top:20px; opacity:0.6;">Waiting for Host...</p>`;
+                }
+            }
 
             content.innerHTML = `
-                <div style="font-weight:900; color:#6c5ce7;">FOR ${data.bet} POINTS</div>
-                <h3 style="margin:10px 0 20px 0">${data.question.q}</h3>
+                <span class="sub-header">FOR ${data.bet} POINTS</span>
+                <h2 style="font-size:20px; margin:10px 0 30px 0;">${data.question.q}</h2>
                 ${ansHtml}
-                ${feedbackHtml}
-                ${nextBtn}
+                ${actionArea}
             `;
         }
     }
 
     // --- GAME ACTIONS ---
     window.game = {
-        startNewRound: () => {
-            // Only Host Generates Data
+        initRound: () => {
+            // Generates themes for the round
             const themes = [...CATEGORIES].sort(()=>0.5-Math.random()).slice(0,4);
             update(roomRef, {
                 phase: 'theme',
@@ -340,65 +490,76 @@
             });
         },
 
-        selectTheme: (index) => {
-            const theme = currentGameState.themes[index];
+        selectTheme: (idx) => {
             update(roomRef, {
                 phase: 'bet',
-                currentTheme: theme
+                currentTheme: currentGameState.themes[idx]
             });
         },
 
         submitBet: async () => {
             const val = parseInt(document.getElementById('diffSlider').value);
-            // Fetch Question
-            let apiDiff = val<=3?'easy':(val>=8?'hard':'medium');
-            document.getElementById('gameContent').innerHTML = "Loading Question...";
+            const themeId = currentGameState.currentTheme.id;
             
+            // Loading UI
+            document.getElementById('gameContent').innerHTML = `<div class="spinner"></div><p>Fetching Question...</p>`;
+
+            let d = val<=3?'easy':(val>=8?'hard':'medium');
             try {
-                const res = await fetch(`https://opentdb.com/api.php?amount=1&category=${currentGameState.currentTheme.id}&difficulty=${apiDiff}&type=multiple`);
+                const res = await fetch(`https://opentdb.com/api.php?amount=1&category=${themeId}&difficulty=${d}&type=multiple`);
                 const json = await res.json();
+                
+                if(!json.results.length) throw new Error("No Q");
+                
                 const qData = json.results[0];
-                const allAns = [...qData.incorrect_answers, qData.correct_answer].sort(()=>0.5-Math.random());
+                const all = [...qData.incorrect_answers, qData.correct_answer].sort(()=>0.5-Math.random());
 
                 update(roomRef, {
                     phase: 'question',
                     bet: val,
-                    question: {
-                        q: qData.question,
-                        correct: qData.correct_answer,
-                        answers: allAns
-                    }
+                    question: { q: qData.question, correct: qData.correct_answer, answers: all }
                 });
-            } catch(e) { alert("Error fetching question"); }
+            } catch(e) { 
+                alert("Failed to fetch. Try again."); 
+                // Reset to bet phase on error
+                game.selectTheme(0); 
+            }
         },
 
         submitAnswer: (ans) => {
             const isCorrect = ans === currentGameState.question.correct;
-            const points = isCorrect ? currentGameState.bet : 0;
+            const pts = isCorrect ? currentGameState.bet : 0;
             
-            // Calculate new scores
+            // Update scores locally first to calculate logic
             const newScores = { ...currentGameState.scores };
-            if (currentGameState.turn === 'host') newScores.host += points;
-            else newScores.guest += points;
+            if (currentGameState.turn === 'host') newScores.host += pts;
+            else newScores.guest += pts;
 
-            // Check Win
-            let status = 'playing';
-            let winner = null;
-            if(newScores.host >= 25) { status = 'finished'; winner = 'host'; }
-            else if(newScores.guest >= 25) { status = 'finished'; winner = 'guest'; }
-
-            // Next Turn
-            const nextTurn = currentGameState.turn === 'host' ? 'guest' : 'host';
-
+            // Don't swap turn yet. Just show results.
             update(roomRef, {
                 scores: newScores,
-                status: status,
-                winner: winner,
-                turn: nextTurn, // Swap turn for next round
-                feedback: {
-                    correct: isCorrect,
-                    text: isCorrect ? "CORRECT!" : "WRONG!"
-                }
+                feedback: { correct: isCorrect, lastAnswer: ans }
+            });
+        },
+
+        nextRound: () => {
+            // Check Win Condition
+            const s = currentGameState.scores;
+            if (s.host >= 25) { update(roomRef, { status: 'finished', winner: 'host' }); return; }
+            if (s.guest >= 25) { update(roomRef, { status: 'finished', winner: 'guest' }); return; }
+
+            // Swap Turn
+            const nextTurn = currentGameState.turn === 'host' ? 'guest' : 'host';
+            
+            // Reset state for next round
+            const themes = [...CATEGORIES].sort(()=>0.5-Math.random()).slice(0,4);
+            update(roomRef, {
+                phase: 'theme',
+                turn: nextTurn,
+                themes: themes,
+                feedback: null,
+                question: null,
+                currentTheme: null
             });
         }
     };
